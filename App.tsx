@@ -1,44 +1,52 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import {NavigationContainer} from '@react-navigation/native';
+import {ActivityIndicator, StatusBar, StyleSheet, View} from 'react-native';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import {AppNavigator} from '@/navigation/AppNavigator';
+import {ThemeProvider, useTheme} from '@/design/theme/ThemeProvider';
+import {getNavigationTheme} from '@/design/theme';
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
+function AppShell() {
+  const {isReady, resolvedMode, theme} = useTheme();
+  const navigationTheme = getNavigationTheme(theme);
+
+  if (!isReady) {
+    return (
+      <View
+        style={[
+          styles.loadingContainer,
+          {backgroundColor: theme.colors.background},
+        ]}>
+        <ActivityIndicator color={theme.colors.primary} size="large" />
+      </View>
+    );
+  }
 
   return (
+    <>
+      <StatusBar barStyle={resolvedMode === 'dark' ? 'light-content' : 'dark-content'} />
+      <NavigationContainer theme={navigationTheme}>
+        <AppNavigator />
+      </NavigationContainer>
+    </>
+  );
+}
+
+function App() {
+  return (
     <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
+      <ThemeProvider>
+        <AppShell />
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }
 
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
-  return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  container: {
+  loadingContainer: {
+    alignItems: 'center',
     flex: 1,
+    justifyContent: 'center',
   },
 });
 
