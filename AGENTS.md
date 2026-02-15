@@ -23,7 +23,7 @@ Maintain and extend the app with consistency and minimal risk. Prioritize produc
 
 - Entry points: `index.js`, `App.tsx`.
 - Main code under `src/`.
-- Screens: `HomeScreen`, `CounterScreen`, `AppearanceScreen`.
+- Screens: `HomeScreen`, `CounterScreen`, `AppearanceScreen`, `SplashScreen`.
 - Navigation: typed native stack + custom top bar.
 - Shared UI: `App*` components in `src/components`.
 - Theme and tokens are the single design source of truth.
@@ -46,6 +46,11 @@ Maintain and extend the app with consistency and minimal risk. Prioritize produc
 
 ## Current UX Expectations
 
+- App startup:
+  - Show `SplashScreen` as an in-tree full-screen overlay on app start.
+  - Splash remains for `3000ms`, then fades out.
+  - Main navigation is rendered under the splash overlay before fade starts.
+  - While splash is visible, preload Home data from storage and precompute amount-related values so Home appears immediately populated.
 - Home screen layout:
   - Main screen content is static (no full-screen vertical scroll).
   - Top summary (outside cards): centered larger total value (no label), tappable to open the withdraw dialog.

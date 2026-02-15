@@ -12,7 +12,7 @@ import {ROUTES} from '@/constants/routes';
 import {useTheme} from '@/design/theme/ThemeProvider';
 import {AppearanceScreen} from '@/screens/AppearanceScreen';
 import {CounterScreen} from '@/screens/CounterScreen';
-import {HomeScreen} from '@/screens/HomeScreen';
+import {HomeScreen, type HomeScreenInitialData} from '@/screens/HomeScreen';
 
 import type {RootStackParamList} from './types';
 
@@ -58,7 +58,11 @@ function TopBarHeader({back, navigation, route}: NativeStackHeaderProps) {
   );
 }
 
-export function AppNavigator() {
+type AppNavigatorProps = {
+  initialHomeData?: HomeScreenInitialData;
+};
+
+export function AppNavigator({initialHomeData}: AppNavigatorProps) {
   const {theme} = useTheme();
   const [isMenuVisible, setMenuVisible] = useState(false);
   const sourceNavigation =
@@ -94,7 +98,12 @@ export function AppNavigator() {
             header: TopBarHeader,
           })}>
           <Stack.Screen name={ROUTES.Home}>
-            {() => <HomeScreen isMenuVisible={isMenuVisible} />}
+            {() => (
+              <HomeScreen
+                initialData={initialHomeData}
+                isMenuVisible={isMenuVisible}
+              />
+            )}
           </Stack.Screen>
           <Stack.Screen component={AppearanceScreen} name={ROUTES.Appearance} />
           <Stack.Screen component={CounterScreen} name={ROUTES.Counter} />

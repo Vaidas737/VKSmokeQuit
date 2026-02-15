@@ -25,6 +25,7 @@ import {
   calculateMonthRemainingProgress,
   calculateWithdrawalBalances,
   type CounterWithdrawalEntry,
+  type MonthRemainingProgress,
   deleteCounterWithdrawal,
   DEFAULT_DAILY_AMOUNT,
   getStoredCounterSettings,
@@ -78,16 +79,35 @@ const formatWithdrawalDate = (createdAtIso: string): string => {
 };
 
 type HomeScreenProps = {
+  initialData?: HomeScreenInitialData;
   isMenuVisible?: boolean;
 };
 
-export function HomeScreen({isMenuVisible = false}: HomeScreenProps) {
+export type HomeScreenInitialData = {
+  dailyAmount: number;
+  now: Date;
+  preparedBalances?: ReturnType<typeof calculateWithdrawalBalances>;
+  preparedMonthRemaining?: MonthRemainingProgress;
+  startDate: Date;
+  withdrawHistory: CounterWithdrawalEntry[];
+};
+
+export function HomeScreen({
+  initialData,
+  isMenuVisible = false,
+}: HomeScreenProps) {
   const {theme} = useTheme();
   const isFocused = useIsFocused();
-  const [now, setNow] = useState<Date>(() => new Date());
-  const [startDate, setStartDate] = useState<Date>(() => startOfLocalDay(new Date()));
-  const [dailyAmount, setDailyAmount] = useState<number>(DEFAULT_DAILY_AMOUNT);
-  const [withdrawHistory, setWithdrawHistory] = useState<CounterWithdrawalEntry[]>([]);
+  const [now, setNow] = useState<Date>(() => initialData?.now ?? new Date());
+  const [startDate, setStartDate] = useState<Date>(() => (
+    initialData?.startDate ?? startOfLocalDay(new Date())
+  ));
+  const [dailyAmount, setDailyAmount] = useState<number>(
+    () => initialData?.dailyAmount ?? DEFAULT_DAILY_AMOUNT,
+  );
+  const [withdrawHistory, setWithdrawHistory] = useState<CounterWithdrawalEntry[]>(
+    () => initialData?.withdrawHistory ?? [],
+  );
   const [isWithdrawDialogVisible, setWithdrawDialogVisible] = useState(false);
   const [withdrawAmountInput, setWithdrawAmountInput] = useState('');
   const [selectedWithdrawalEntry, setSelectedWithdrawalEntry] =
@@ -104,6 +124,13 @@ export function HomeScreen({isMenuVisible = false}: HomeScreenProps) {
     offsetY: 0,
     viewportHeight: 0,
   });
+  const skipInitialFocusHydrationRef = useRef(Boolean(initialData));
+  const preparedBalancesRef = useRef<ReturnType<typeof calculateWithdrawalBalances> | null>(
+    initialData?.preparedBalances ?? null,
+  );
+  const preparedMonthRemainingRef = useRef<MonthRemainingProgress | null>(
+    initialData?.preparedMonthRemaining ?? null,
+  );
 
   const showSnackbar = (message: string, tone: AppSnackbarTone) => {
     setSnackbar(previous => ({
@@ -155,6 +182,12 @@ export function HomeScreen({isMenuVisible = false}: HomeScreenProps) {
 
   useFocusEffect(
     useCallback(() => {
+      if (skipInitialFocusHydrationRef.current) {
+        skipInitialFocusHydrationRef.current = false;
+
+        return () => {};
+      }
+
       let isActive = true;
 
       Promise.all([getStoredCounterSettings(), getStoredCounterWithdrawalHistory()])
@@ -198,10 +231,26 @@ export function HomeScreen({isMenuVisible = false}: HomeScreenProps) {
   }, [hydrateHomeData]);
 
   const balances = useMemo(
-    () => calculateWithdrawalBalances(startDate, dailyAmount, now, withdrawHistory),
+    () => {
+      const preparedBalances = preparedBalancesRef.current;
+      if (preparedBalances) {
+        preparedBalancesRef.current = null;
+        return preparedBalances;
+      }
+
+      return calculateWithdrawalBalances(startDate, dailyAmount, now, withdrawHistory);
+    },
     [dailyAmount, now, startDate, withdrawHistory],
   );
-  const monthRemaining = useMemo(() => calculateMonthRemainingProgress(now), [now]);
+  const monthRemaining = useMemo(() => {
+    const preparedMonthRemaining = preparedMonthRemainingRef.current;
+    if (preparedMonthRemaining) {
+      preparedMonthRemainingRef.current = null;
+      return preparedMonthRemaining;
+    }
+
+    return calculateMonthRemainingProgress(now);
+  }, [now]);
   const monthRemainingPercent = Math.round(monthRemaining.remainingRatio * 100);
   const daysLabel = monthRemaining.daysLeft === 1 ? 'day' : 'days';
   const isMonthRemainingPulseEnabled =
