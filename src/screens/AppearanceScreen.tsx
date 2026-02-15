@@ -31,7 +31,7 @@ const THEME_OPTIONS: Array<{
   },
 ];
 
-export function SettingsScreen() {
+export function AppearanceScreen() {
   const {resolvedMode, setThemeMode, theme, themeMode} = useTheme();
   const [isSnackbarVisible, setSnackbarVisible] = useState(false);
 
@@ -54,14 +54,7 @@ export function SettingsScreen() {
   return (
     <ScreenContainer>
       <View style={{gap: theme.spacing[16]}}>
-        <AppText variant="headlineSmall">Settings</AppText>
-        <AppText color="onSurfaceVariant" variant="bodyMedium">
-          Theme preference is stored locally with AsyncStorage and can follow the
-          iOS system appearance.
-        </AppText>
-
         <AppCard>
-          <AppText variant="titleMedium">Appearance</AppText>
           <AppText color="onSurfaceVariant" style={{marginTop: theme.spacing[8]}} variant="bodySmall">
             Active palette: {resolvedModeLabel}
           </AppText>

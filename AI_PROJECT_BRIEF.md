@@ -29,7 +29,7 @@ Maintain and extend an iOS-only React Native app using a strict, token-based Mat
 
 - Entry: `index.js`, `App.tsx`
 - Shared code in `src/`
-  - `src/screens`: `HomeScreen`, `CounterScreen`, `SettingsScreen`, `AboutScreen`
+  - `src/screens`: `HomeScreen`, `CounterScreen`, `AppearanceScreen`, `AboutScreen`
   - `src/navigation`: native-stack setup, route typing, custom top bar wiring
   - `src/components`: reusable `App*` components and shared layout/menu primitives
   - `src/design/tokens`: color/typography/spacing/radius/elevation tokens
@@ -41,23 +41,23 @@ Maintain and extend an iOS-only React Native app using a strict, token-based Mat
 - Core user flow:
   - `Home`: launch surface, savings totals, drawer entry point
   - `Counter`: update daily amount and reset start date
-  - `Settings`: theme preference management
+  - `Appearance`: theme preference management
   - `About`: app context/info screen
 
 ## Navigation and Menu UX
 
-- Uses React Navigation native stack (`Home`, `Settings`, `Counter`, `About`).
+- Uses React Navigation native stack (`Home`, `Appearance`, `Counter`, `About`).
 - Navigation pattern: **stack header rules** via `AppTopBar`.
 - Home header has a left-side menu button.
 - Menu opens a custom left slide-in drawer overlay (`LeftDrawerMenu`) with a square edge and responsive width.
 - Drawer closes via outside tap or left swipe gesture.
 - Opening/closing uses matched slide animation with gentle full-screen dim/undim scrim animation.
-- Drawer contains `Settings` and `Counter`.
-- Drawer `Settings` row uses a leading Material icon (`settings`) and no subtitle/description.
+- Drawer contains `Appearance` and `Counter`.
+- Drawer `Appearance` row uses a leading Material icon (`palette`) and no subtitle/description.
 - Drawer `Counter` row uses a leading Material icon (`calculate`) and no subtitle/description.
-- Selecting drawer `Settings` navigates to `SettingsScreen`.
+- Selecting drawer `Appearance` navigates to `AppearanceScreen`.
 - Selecting drawer `Counter` navigates to `CounterScreen`.
-- Access to `Settings` and `Counter` is drawer-driven from the Home top bar menu.
+- Access to `Appearance` and `Counter` is drawer-driven from the Home top bar menu.
 
 ## Home Screen Current UX
 
@@ -77,7 +77,7 @@ Maintain and extend an iOS-only React Native app using a strict, token-based Mat
 - Counter state persists via `@react-native-async-storage/async-storage`:
   - `counterStartDate`
   - `counterDailyAmount`
-- Settings screen exposes explicit mode selection.
+- Appearance screen exposes explicit mode selection.
 
 ## Testing and Tooling
 
@@ -295,4 +295,4 @@ Maintain and extend an iOS-only React Native app using a strict, token-based Mat
 - Reuse `ScreenContainer` for screen scaffolding.
 - Keep business logic in hooks/utils, not screen components.
 - Maintain offline-first behavior unless requirements explicitly change.
-- Keep the left drawer pattern consistent if adding more settings destinations later.
+- Keep the left drawer pattern consistent if adding more drawer destinations later.

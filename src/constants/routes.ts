@@ -1,6 +1,6 @@
 export const ROUTES = {
   About: 'About',
+  Appearance: 'Appearance',
   Counter: 'Counter',
   Home: 'Home',
-  Settings: 'Settings',
 } as const;

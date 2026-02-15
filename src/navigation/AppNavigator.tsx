@@ -11,9 +11,9 @@ import {AppTopBar} from '@/components/AppTopBar';
 import {ROUTES} from '@/constants/routes';
 import {useTheme} from '@/design/theme/ThemeProvider';
 import {AboutScreen} from '@/screens/AboutScreen';
+import {AppearanceScreen} from '@/screens/AppearanceScreen';
 import {CounterScreen} from '@/screens/CounterScreen';
 import {HomeScreen} from '@/screens/HomeScreen';
-import {SettingsScreen} from '@/screens/SettingsScreen';
 
 import type {RootStackParamList} from './types';
 
@@ -30,8 +30,8 @@ function getTitleForRoute(routeName: keyof RootStackParamList): string {
     return 'Smoke-Free Journey';
   }
 
-  if (routeName === ROUTES.Settings) {
-    return 'Settings';
+  if (routeName === ROUTES.Appearance) {
+    return 'Appearance';
   }
 
   if (routeName === ROUTES.Counter) {
@@ -81,8 +81,8 @@ export function AppNavigator() {
     setMenuVisible(false);
   }, []);
 
-  const openSettings = useCallback(() => {
-    sourceNavigation.current?.navigate(ROUTES.Settings);
+  const openAppearance = useCallback(() => {
+    sourceNavigation.current?.navigate(ROUTES.Appearance);
   }, []);
 
   const openCounter = useCallback(() => {
@@ -99,7 +99,7 @@ export function AppNavigator() {
             header: TopBarHeader,
           })}>
           <Stack.Screen component={HomeScreen} name={ROUTES.Home} />
-          <Stack.Screen component={SettingsScreen} name={ROUTES.Settings} />
+          <Stack.Screen component={AppearanceScreen} name={ROUTES.Appearance} />
           <Stack.Screen component={CounterScreen} name={ROUTES.Counter} />
           <Stack.Screen component={AboutScreen} name={ROUTES.About} />
         </Stack.Navigator>
@@ -107,7 +107,7 @@ export function AppNavigator() {
         <LeftDrawerMenu
           onClose={closeMenu}
           onOpenCounter={openCounter}
-          onOpenSettings={openSettings}
+          onOpenAppearance={openAppearance}
           visible={isMenuVisible}
         />
       </View>

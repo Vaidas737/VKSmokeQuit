@@ -24,15 +24,15 @@ const SWIPE_CLOSE_VELOCITY = 0.3;
 
 type LeftDrawerMenuProps = {
   onClose: () => void;
+  onOpenAppearance: () => void;
   onOpenCounter: () => void;
-  onOpenSettings: () => void;
   visible: boolean;
 };
 
 export function LeftDrawerMenu({
   onClose,
+  onOpenAppearance,
   onOpenCounter,
-  onOpenSettings,
   visible,
 }: LeftDrawerMenuProps) {
   const [isMounted, setIsMounted] = useState(visible);
@@ -150,15 +150,15 @@ export function LeftDrawerMenu({
             leading={
               <MaterialIcons
                 color={theme.colors.onSurfaceVariant}
-                name="settings"
+                name="palette"
                 size={theme.spacing[24]}
               />
             }
             onPress={() => {
               onClose();
-              onOpenSettings();
+              onOpenAppearance();
             }}
-            title="Settings"
+            title="Appearance"
           />
 
           <AppListRow
