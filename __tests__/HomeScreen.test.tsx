@@ -172,6 +172,12 @@ describe('HomeScreen', () => {
   it('opens withdraw dialog when pressing the total amount and withdrawals are available', async () => {
     const now = new Date();
     const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const expectedMaxAmount = calculateWithdrawalBalances(
+      previousMonthStart,
+      10,
+      now,
+      [],
+    ).pastAccumulatedAvailable;
     await AsyncStorage.multiSet([
       [STORAGE_KEYS.counterStartDate, previousMonthStart.toISOString()],
       [STORAGE_KEYS.counterDailyAmount, '10'],
@@ -190,6 +196,9 @@ describe('HomeScreen', () => {
       name: 'Withdraw from total amount',
     });
     expect(getButtonDisabledState(totalAmountButton)).toBe(false);
+    expect(
+      getAmountFromTextNode(getByTestId('home-total-amount-value')),
+    ).toBe(expectedMaxAmount);
 
     pressTotalAmountButton(getByTestId);
 

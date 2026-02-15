@@ -54,7 +54,7 @@ Maintain and extend the app with consistency and minimal risk. Prioritize produc
   - While splash is visible, preload Home data from storage and precompute amount-related values so Home appears immediately populated.
 - Home screen layout:
   - Main screen content is static (no full-screen vertical scroll).
-  - Top summary (outside cards): two larger totals in one row; left is tappable adjusted total (opens withdraw dialog), right is unlabeled absolute total (includes withdrawals).
+  - Top summary (outside cards): two larger totals in one row; left is tappable available withdrawal amount (matches Withdraw dialog `Maximum now`), right is unlabeled absolute total (includes withdrawals).
     - In the withdraw dialog, keyboard `Done` only dismisses the keyboard; only `Confirm` performs the withdrawal.
   - First card: `This Month` and `Month Remaining` (percentage + progress bar + days left in month).
     - `Month Remaining` progress bar runs a smooth left-to-right gradient sweep while Home is focused and no popup/dialog is open (`pulseIntervalMs=2200`).

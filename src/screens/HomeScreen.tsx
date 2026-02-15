@@ -402,7 +402,7 @@ export function HomeScreen({
                   style={[styles.summaryValue, styles.summaryValueLeft]}
                   testID="home-total-amount-value"
                   variant="displaySmall">
-                  ₪{balances.adjustedOverall}
+                  ₪{balances.pastAccumulatedAvailable}
                 </AppText>
               </Pressable>
             </View>
