@@ -415,6 +415,19 @@ export function HomeScreen({isMenuVisible = false}: HomeScreenProps) {
             ) : null}
           </View>
         </AppCard>
+
+        <AppText
+          color="onSurfaceVariant"
+          style={[
+            styles.brandingCredit,
+            {
+              marginTop: theme.spacing[12],
+            },
+          ]}
+          testID="home-branding-credit"
+          variant="labelMedium">
+          powered by willpower.
+        </AppText>
       </View>
 
       <AppSnackbar
@@ -555,6 +568,12 @@ const styles = StyleSheet.create({
   },
   summaryValue: {
     textAlign: 'center',
+  },
+  brandingCredit: {
+    fontStyle: 'italic',
+    letterSpacing: 1.2,
+    textAlign: 'center',
+    textTransform: 'uppercase',
   },
   withdrawalHistoryBody: {
     flex: 1,

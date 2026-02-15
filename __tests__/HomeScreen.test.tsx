@@ -132,6 +132,16 @@ describe('HomeScreen', () => {
     await AsyncStorage.clear();
   });
 
+  it('renders branding credit at the bottom of the home screen', async () => {
+    const {getByTestId, getByText} = renderHomeScreen();
+
+    await waitFor(() => {
+      expect(getByTestId('home-branding-credit')).toBeTruthy();
+    });
+
+    expect(getByText('powered by willpower.')).toBeTruthy();
+  });
+
   it('keeps total amount action disabled when only current month total exists', async () => {
     const today = startOfLocalDay(new Date());
     await AsyncStorage.multiSet([

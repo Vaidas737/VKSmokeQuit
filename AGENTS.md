@@ -56,6 +56,7 @@ Maintain and extend the app with consistency and minimal risk. Prioritize produc
     - Tapping a row opens a details dialog with amount/date and `Cancel` + `Delete` actions.
     - Deleting a row removes it from history and recalculates the top total amount.
     - Show a bottom gradient dim overlay while more history items are available below; hide it at list end.
+  - Bottom-centered branding credit on Home only: `powered by willpower.` (inscription-style treatment).
 - Counter values are based on persisted settings and local date/time.
 
 ## Theme and Persistence Rules
