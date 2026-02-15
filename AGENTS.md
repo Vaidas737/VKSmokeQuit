@@ -34,7 +34,7 @@ Maintain and extend the app with consistency and minimal risk. Prioritize produc
 - Stack routes: `Home`, `Appearance`, `Counter`.
 - Header implementation must use `AppTopBar`.
 - Home header uses leading menu button.
-- On Home, if the withdraw dialog is open, pressing the menu button closes the dialog.
+- On Home, if the withdraw dialog or withdrawal-details dialog is open, pressing the menu button closes the open dialog.
 - Child screens use back icon behavior.
 - Drawer is a custom left slide-in overlay (`LeftDrawerMenu`), square edge, responsive width.
 - Drawer closes via outside tap or left swipe.
@@ -52,6 +52,9 @@ Maintain and extend the app with consistency and minimal risk. Prioritize produc
   - First card: `This Month` and `Month Remaining` (percentage + progress bar + days left in month).
     - `Month Remaining` progress bar runs a smooth left-to-right gradient sweep while Home is focused and no popup/dialog is open (`pulseIntervalMs=2200`).
   - Withdrawal History card is vertically scrollable inside the card.
+    - Rows are tappable and use subtle press animation.
+    - Tapping a row opens a details dialog with amount/date and `Cancel` + `Delete` actions.
+    - Deleting a row removes it from history and recalculates the top total amount.
     - Show a bottom gradient dim overlay while more history items are available below; hide it at list end.
 - Counter values are based on persisted settings and local date/time.
 
@@ -130,6 +133,7 @@ Rules:
 - `AppSnackbar`: bottom safe-area placement, default auto-dismiss `3000ms`, tokenized style, supports `tone` (`success`/`info`/`error`) and event-based replay via `eventId`.
 - Snackbar layering/timing invariant: opening dialogs/popups must not reset snackbar animation/timer; snackbar remains visually on top and undimmed.
 - `AppListRow`: min height `56`, semantic typography (`titleMedium`, `bodySmall`).
+  - Optional press animation for tappable rows: subtle scale+fade on press in/out.
 - `AppProgressBar`: tokenized track/fill, clamped `0..1` progress, accessible `progressbar` semantics.
   - Optional periodic sweep props: `pulseIntervalMs`, `pulseEnabled`.
   - Sweep is smooth left-to-right gradient overlay and is disabled when iOS Reduce Motion is enabled.

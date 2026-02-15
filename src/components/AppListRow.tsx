@@ -1,12 +1,13 @@
 import type {ReactNode} from 'react';
-import {useState} from 'react';
-import {Pressable, StyleSheet, View} from 'react-native';
+import {useRef, useState} from 'react';
+import {Animated, Pressable, StyleSheet, View} from 'react-native';
 
 import {AppText} from '@/components/AppText';
 import {useTheme} from '@/design/theme/ThemeProvider';
 import {withOpacity} from '@/design/theme';
 
 type AppListRowProps = {
+  animateOnPress?: boolean;
   disabled?: boolean;
   leading?: ReactNode;
   onPress?: () => void;
@@ -17,6 +18,7 @@ type AppListRowProps = {
 };
 
 export function AppListRow({
+  animateOnPress = false,
   disabled = false,
   leading,
   onPress,
@@ -27,6 +29,8 @@ export function AppListRow({
 }: AppListRowProps) {
   const {theme} = useTheme();
   const [isFocused, setIsFocused] = useState(false);
+  const rowScale = useRef(new Animated.Value(1)).current;
+  const rowOpacity = useRef(new Animated.Value(1)).current;
 
   const content = (
     <View
@@ -65,6 +69,54 @@ export function AppListRow({
     return content;
   }
 
+  const handlePressIn = () => {
+    if (!animateOnPress || disabled) {
+      return;
+    }
+
+    rowScale.stopAnimation();
+    rowOpacity.stopAnimation();
+    Animated.parallel([
+      Animated.timing(rowScale, {
+        duration: 90,
+        toValue: 0.985,
+        useNativeDriver: true,
+      }),
+      Animated.timing(rowOpacity, {
+        duration: 90,
+        toValue: 0.96,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const handlePressOut = () => {
+    if (!animateOnPress || disabled) {
+      return;
+    }
+
+    rowScale.stopAnimation();
+    rowOpacity.stopAnimation();
+    Animated.parallel([
+      Animated.timing(rowScale, {
+        duration: 140,
+        toValue: 1,
+        useNativeDriver: true,
+      }),
+      Animated.timing(rowOpacity, {
+        duration: 140,
+        toValue: 1,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+  const animatedContentStyle = animateOnPress
+    ? {
+        opacity: rowOpacity,
+        transform: [{scale: rowScale}],
+      }
+    : styles.animatedContentStatic;
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -73,6 +125,8 @@ export function AppListRow({
       onBlur={() => setIsFocused(false)}
       onFocus={() => setIsFocused(true)}
       onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
       style={({pressed}) => [
         {
           backgroundColor: pressed
@@ -84,12 +138,25 @@ export function AppListRow({
           opacity: disabled ? theme.state.disabledContentOpacity : 1,
         },
       ]}>
-      {content}
+      <Animated.View
+        style={[
+          styles.animatedContent,
+          animatedContentStyle,
+        ]}>
+        {content}
+      </Animated.View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  animatedContent: {
+    width: '100%',
+  },
+  animatedContentStatic: {
+    opacity: 1,
+    transform: [{scale: 1}],
+  },
   dot: {
     borderRadius: 4,
     height: 8,

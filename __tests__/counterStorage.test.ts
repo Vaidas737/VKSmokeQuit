@@ -1,7 +1,12 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import {STORAGE_KEYS} from '@/constants/storage';
 import {
   calculateMonthRemainingProgress,
   calculateWithdrawalBalances,
+  deleteCounterWithdrawal,
   type CounterWithdrawalEntry,
+  getStoredCounterWithdrawalHistory,
 } from '@/utils/counterStorage';
 
 describe('calculateMonthRemainingProgress', () => {
@@ -98,5 +103,100 @@ describe('calculateWithdrawalBalances', () => {
     expect(result.withdrawnTotal).toBe(500);
     expect(result.pastAccumulatedAvailable).toBe(0);
     expect(result.adjustedOverall).toBe(0);
+  });
+});
+
+describe('deleteCounterWithdrawal', () => {
+  beforeEach(async () => {
+    await AsyncStorage.clear();
+  });
+
+  afterEach(async () => {
+    await AsyncStorage.clear();
+  });
+
+  it('removes matching id and returns normalized newest-first history', async () => {
+    const storedHistory: CounterWithdrawalEntry[] = [
+      {
+        amount: 20,
+        createdAtIso: '2026-01-10T10:00:00.000Z',
+        id: 'older',
+      },
+      {
+        amount: 40,
+        createdAtIso: '2026-03-10T10:00:00.000Z',
+        id: 'newest',
+      },
+      {
+        amount: 30,
+        createdAtIso: '2026-02-10T10:00:00.000Z',
+        id: 'delete-me',
+      },
+    ];
+
+    await AsyncStorage.setItem(
+      STORAGE_KEYS.counterWithdrawalHistory,
+      JSON.stringify(storedHistory),
+    );
+
+    const updatedHistory = await deleteCounterWithdrawal('delete-me');
+
+    expect(updatedHistory.map(entry => entry.id)).toEqual(['newest', 'older']);
+  });
+
+  it('returns unchanged history when id is missing', async () => {
+    const storedHistory: CounterWithdrawalEntry[] = [
+      {
+        amount: 20,
+        createdAtIso: '2026-01-10T10:00:00.000Z',
+        id: 'entry-1',
+      },
+      {
+        amount: 40,
+        createdAtIso: '2026-03-10T10:00:00.000Z',
+        id: 'entry-2',
+      },
+    ];
+
+    await AsyncStorage.setItem(
+      STORAGE_KEYS.counterWithdrawalHistory,
+      JSON.stringify(storedHistory),
+    );
+
+    const updatedHistory = await deleteCounterWithdrawal('missing-id');
+    const normalizedExistingHistory = await getStoredCounterWithdrawalHistory();
+
+    expect(updatedHistory).toEqual(normalizedExistingHistory);
+  });
+
+  it('persists updated history after deletion', async () => {
+    const storedHistory: CounterWithdrawalEntry[] = [
+      {
+        amount: 20,
+        createdAtIso: '2026-01-10T10:00:00.000Z',
+        id: 'entry-1',
+      },
+      {
+        amount: 40,
+        createdAtIso: '2026-03-10T10:00:00.000Z',
+        id: 'entry-2',
+      },
+    ];
+
+    await AsyncStorage.setItem(
+      STORAGE_KEYS.counterWithdrawalHistory,
+      JSON.stringify(storedHistory),
+    );
+
+    await deleteCounterWithdrawal('entry-1');
+
+    const persistedRaw = await AsyncStorage.getItem(
+      STORAGE_KEYS.counterWithdrawalHistory,
+    );
+    expect(persistedRaw).not.toBeNull();
+
+    const persisted = JSON.parse(persistedRaw ?? '[]') as CounterWithdrawalEntry[];
+    expect(persisted).toHaveLength(1);
+    expect(persisted[0].id).toBe('entry-2');
   });
 });

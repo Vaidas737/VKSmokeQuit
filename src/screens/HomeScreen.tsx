@@ -25,6 +25,7 @@ import {
   calculateMonthRemainingProgress,
   calculateWithdrawalBalances,
   type CounterWithdrawalEntry,
+  deleteCounterWithdrawal,
   DEFAULT_DAILY_AMOUNT,
   getStoredCounterSettings,
   getStoredCounterWithdrawalHistory,
@@ -89,6 +90,8 @@ export function HomeScreen({isMenuVisible = false}: HomeScreenProps) {
   const [withdrawHistory, setWithdrawHistory] = useState<CounterWithdrawalEntry[]>([]);
   const [isWithdrawDialogVisible, setWithdrawDialogVisible] = useState(false);
   const [withdrawAmountInput, setWithdrawAmountInput] = useState('');
+  const [selectedWithdrawalEntry, setSelectedWithdrawalEntry] =
+    useState<CounterWithdrawalEntry | null>(null);
   const [isHistoryFooterDimVisible, setHistoryFooterDimVisible] = useState(false);
   const [snackbar, setSnackbar] = useState<SnackbarState>({
     eventId: 0,
@@ -115,12 +118,30 @@ export function HomeScreen({isMenuVisible = false}: HomeScreenProps) {
     setWithdrawDialogVisible(false);
     setWithdrawAmountInput('');
   }, []);
+  const closeWithdrawalDetailsDialog = useCallback(() => {
+    setSelectedWithdrawalEntry(null);
+  }, []);
+  const isWithdrawalDetailsDialogVisible = selectedWithdrawalEntry !== null;
 
   useEffect(() => {
-    if (isMenuVisible && isWithdrawDialogVisible) {
+    if (!isMenuVisible) {
+      return;
+    }
+
+    if (isWithdrawDialogVisible) {
       closeWithdrawDialog();
     }
-  }, [closeWithdrawDialog, isMenuVisible, isWithdrawDialogVisible]);
+
+    if (isWithdrawalDetailsDialogVisible) {
+      closeWithdrawalDetailsDialog();
+    }
+  }, [
+    closeWithdrawDialog,
+    closeWithdrawalDetailsDialog,
+    isMenuVisible,
+    isWithdrawalDetailsDialogVisible,
+    isWithdrawDialogVisible,
+  ]);
 
   const hydrateHomeData = useCallback(async () => {
     const [storedCounterSettings, storedWithdrawals] = await Promise.all([
@@ -183,7 +204,8 @@ export function HomeScreen({isMenuVisible = false}: HomeScreenProps) {
   const monthRemaining = useMemo(() => calculateMonthRemainingProgress(now), [now]);
   const monthRemainingPercent = Math.round(monthRemaining.remainingRatio * 100);
   const daysLabel = monthRemaining.daysLeft === 1 ? 'day' : 'days';
-  const isMonthRemainingPulseEnabled = isFocused && !isWithdrawDialogVisible;
+  const isMonthRemainingPulseEnabled =
+    isFocused && !isWithdrawDialogVisible && !isWithdrawalDetailsDialogVisible;
   const withdrawalError = useMemo(
     () =>
       getWithdrawalInputError(
@@ -218,6 +240,22 @@ export function HomeScreen({isMenuVisible = false}: HomeScreenProps) {
       })
       .catch(() => {
         showSnackbar('Unable to save withdrawal', 'error');
+      });
+  };
+  const confirmWithdrawalDeletion = () => {
+    if (!selectedWithdrawalEntry) {
+      return;
+    }
+
+    deleteCounterWithdrawal(selectedWithdrawalEntry.id)
+      .then(updatedHistory => {
+        setWithdrawHistory(updatedHistory);
+        closeWithdrawalDetailsDialog();
+        showSnackbar('Withdrawal deleted', 'success');
+      })
+      .catch(() => {
+        closeWithdrawalDetailsDialog();
+        showSnackbar('Unable to delete withdrawal', 'error');
       });
   };
 
@@ -347,7 +385,9 @@ export function HomeScreen({isMenuVisible = false}: HomeScreenProps) {
               ) : (
                 withdrawHistory.map(entry => (
                   <AppListRow
+                    animateOnPress
                     key={entry.id}
+                    onPress={() => setSelectedWithdrawalEntry(entry)}
                     subtitle={formatWithdrawalDate(entry.createdAtIso)}
                     title={`₪${entry.amount}`}
                   />
@@ -463,6 +503,26 @@ export function HomeScreen({isMenuVisible = false}: HomeScreenProps) {
             </View>
           </View>
         </TouchableWithoutFeedback>
+      </AppDialog>
+
+      <AppDialog
+        cancelLabel="Cancel"
+        confirmLabel="Delete"
+        onCancel={closeWithdrawalDetailsDialog}
+        onConfirm={confirmWithdrawalDeletion}
+        onDismiss={closeWithdrawalDetailsDialog}
+        title="Withdrawal details"
+        visible={isWithdrawalDetailsDialogVisible}>
+        {selectedWithdrawalEntry ? (
+          <View style={{gap: theme.spacing[12]}}>
+            <AppText color="onSurfaceVariant" variant="bodyMedium">
+              Amount: ₪{selectedWithdrawalEntry.amount}
+            </AppText>
+            <AppText color="onSurfaceVariant" variant="bodyMedium">
+              Date: {formatWithdrawalDate(selectedWithdrawalEntry.createdAtIso)}
+            </AppText>
+          </View>
+        ) : null}
       </AppDialog>
     </ScreenContainer>
   );

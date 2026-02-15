@@ -42,6 +42,21 @@ const getAmountFromTextNode = (textNode: {props: {children: string | number | Ar
   return Number(textValue.replace('₪', ''));
 };
 
+const formatWithdrawalDateForTest = (createdAtIso: string): string => {
+  const date = new Date(createdAtIso);
+  if (Number.isNaN(date.getTime())) {
+    return createdAtIso;
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(date);
+};
+
 const getPressableNodeFromLabel = (
   getByText: (text: string) => {parent: {parent: {props: Record<string, unknown>} | null} | null; props: Record<string, unknown>},
   label: string,
@@ -95,6 +110,16 @@ const pressTotalAmountByText = (
 ) => {
   const totalAmountText = getAllByText(/^₪\d+$/)[0];
   const pressableNode = getPressableNodeFromTextNode(totalAmountText);
+  fireEvent(pressableNode, 'onPress');
+};
+
+const pressWithdrawalHistoryRowByDate = (
+  getByText: (text: string) => {parent: {parent: {props: Record<string, unknown>} | null} | null; props: Record<string, unknown>},
+  createdAtIso: string,
+) => {
+  const dateLabel = formatWithdrawalDateForTest(createdAtIso);
+  const rowDateText = getByText(dateLabel);
+  const pressableNode = getPressableNodeFromTextNode(rowDateText);
   fireEvent(pressableNode, 'onPress');
 };
 
@@ -250,6 +275,91 @@ describe('HomeScreen', () => {
     expect(updatedOverallAmount).toBe(initialOverallAmount - 50);
   });
 
+  it('opens withdrawal details when pressing a history row', async () => {
+    const now = new Date();
+    const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const historyEntry = {
+      amount: 42,
+      createdAtIso: new Date(now.getFullYear(), now.getMonth(), Math.max(1, now.getDate() - 1))
+        .toISOString(),
+      id: 'history-entry-42',
+    };
+    const expectedDateLabel = formatWithdrawalDateForTest(historyEntry.createdAtIso);
+
+    await AsyncStorage.multiSet([
+      [STORAGE_KEYS.counterStartDate, previousMonthStart.toISOString()],
+      [STORAGE_KEYS.counterDailyAmount, '10'],
+      [STORAGE_KEYS.counterWithdrawalHistory, JSON.stringify([historyEntry])],
+    ]);
+
+    const {getByText} = renderHomeScreen();
+
+    await waitFor(() => {
+      expect(getByText(`₪${historyEntry.amount}`)).toBeTruthy();
+      expect(getByText(expectedDateLabel)).toBeTruthy();
+    });
+
+    pressWithdrawalHistoryRowByDate(getByText, historyEntry.createdAtIso);
+
+    await waitFor(() => {
+      expect(getByText('Withdrawal details')).toBeTruthy();
+      expect(getByText(`Amount: ₪${historyEntry.amount}`)).toBeTruthy();
+      expect(getByText(`Date: ${expectedDateLabel}`)).toBeTruthy();
+      expect(getByText('Cancel')).toBeTruthy();
+      expect(getByText('Delete')).toBeTruthy();
+    });
+  });
+
+  it('deletes selected withdrawal entry, updates total, and removes the row', async () => {
+    const now = new Date();
+    const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+    const historyEntries = [
+      {
+        amount: 35,
+        createdAtIso: new Date(now.getFullYear(), now.getMonth(), Math.max(1, now.getDate() - 2))
+          .toISOString(),
+        id: 'history-delete-target',
+      },
+      {
+        amount: 20,
+        createdAtIso: new Date(now.getFullYear(), now.getMonth(), Math.max(1, now.getDate() - 3))
+          .toISOString(),
+        id: 'history-keep-target',
+      },
+    ];
+    const deletedDateLabel = formatWithdrawalDateForTest(historyEntries[0].createdAtIso);
+
+    await AsyncStorage.multiSet([
+      [STORAGE_KEYS.counterStartDate, previousMonthStart.toISOString()],
+      [STORAGE_KEYS.counterDailyAmount, '10'],
+      [STORAGE_KEYS.counterWithdrawalHistory, JSON.stringify(historyEntries)],
+    ]);
+
+    const {getAllByText, getByText, queryByText} = renderHomeScreen();
+
+    await waitFor(() => {
+      expect(getAllByText(/^₪\d+$/)[0]).toBeTruthy();
+      expect(getByText(deletedDateLabel)).toBeTruthy();
+    });
+
+    const initialOverallAmount = getAmountFromTextNode(getAllByText(/^₪\d+$/)[0]);
+
+    pressWithdrawalHistoryRowByDate(getByText, historyEntries[0].createdAtIso);
+
+    await waitFor(() => {
+      expect(getByText('Delete')).toBeTruthy();
+    });
+    pressButtonByLabel(getByText, 'Delete');
+
+    await waitFor(() => {
+      expect(getByText('Withdrawal deleted')).toBeTruthy();
+      expect(queryByText(deletedDateLabel)).toBeNull();
+    });
+
+    const updatedOverallAmount = getAmountFromTextNode(getAllByText(/^₪\d+$/)[0]);
+    expect(updatedOverallAmount).toBe(initialOverallAmount + historyEntries[0].amount);
+  });
+
   it('pauses month remaining pulse while withdraw dialog is visible', async () => {
     const now = new Date();
     const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
@@ -272,6 +382,43 @@ describe('HomeScreen', () => {
 
     await waitFor(() => {
       expect(getByText(/You can withdraw only from past months/)).toBeTruthy();
+      expect(UNSAFE_getByType(AppProgressBar).props.pulseEnabled).toBe(false);
+    });
+
+    pressButtonByLabel(getByText, 'Cancel');
+
+    await waitFor(() => {
+      expect(UNSAFE_getByType(AppProgressBar).props.pulseEnabled).toBe(true);
+    });
+  });
+
+  it('pauses month remaining pulse while withdrawal details dialog is visible', async () => {
+    const now = new Date();
+    const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+    const historyEntry = {
+      amount: 16,
+      createdAtIso: new Date(now.getFullYear(), now.getMonth(), Math.max(1, now.getDate() - 1))
+        .toISOString(),
+      id: 'history-entry-pulse-check',
+    };
+
+    await AsyncStorage.multiSet([
+      [STORAGE_KEYS.counterStartDate, previousMonthStart.toISOString()],
+      [STORAGE_KEYS.counterDailyAmount, '10'],
+      [STORAGE_KEYS.counterWithdrawalHistory, JSON.stringify([historyEntry])],
+    ]);
+
+    const {UNSAFE_getByType, getByText} = renderHomeScreen();
+
+    await waitFor(() => {
+      expect(getByText(formatWithdrawalDateForTest(historyEntry.createdAtIso))).toBeTruthy();
+      expect(UNSAFE_getByType(AppProgressBar).props.pulseEnabled).toBe(true);
+    });
+
+    pressWithdrawalHistoryRowByDate(getByText, historyEntry.createdAtIso);
+
+    await waitFor(() => {
+      expect(getByText('Withdrawal details')).toBeTruthy();
       expect(UNSAFE_getByType(AppProgressBar).props.pulseEnabled).toBe(false);
     });
 

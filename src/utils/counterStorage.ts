@@ -362,3 +362,25 @@ export async function saveCounterWithdrawal(
 
   return nextHistory;
 }
+
+export async function deleteCounterWithdrawal(
+  entryId: string,
+): Promise<CounterWithdrawalEntry[]> {
+  const normalizedEntryId = entryId.trim();
+  const existingHistory = await getStoredCounterWithdrawalHistory();
+
+  if (normalizedEntryId.length === 0) {
+    return existingHistory;
+  }
+
+  const nextHistory = existingHistory.filter(
+    entry => entry.id !== normalizedEntryId,
+  );
+
+  await AsyncStorage.setItem(
+    STORAGE_KEYS.counterWithdrawalHistory,
+    JSON.stringify(nextHistory),
+  );
+
+  return nextHistory;
+}
