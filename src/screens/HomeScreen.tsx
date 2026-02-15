@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useMemo, useState} from 'react';
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {AppState, StyleSheet, View} from 'react-native';
 
 import {AppCard} from '@/components/AppCard';
@@ -18,6 +18,7 @@ import {
 
 export function HomeScreen() {
   const {theme} = useTheme();
+  const isFocused = useIsFocused();
   const [now, setNow] = useState<Date>(() => new Date());
   const [startDate, setStartDate] = useState<Date>(() => startOfLocalDay(new Date()));
   const [dailyAmount, setDailyAmount] = useState<number>(DEFAULT_DAILY_AMOUNT);
@@ -104,6 +105,8 @@ export function HomeScreen() {
           </AppText>
           <AppProgressBar
             accessibilityLabel="Month remaining progress"
+            pulseEnabled={isFocused}
+            pulseIntervalMs={2200}
             progress={monthRemaining.remainingRatio}
             style={{marginTop: theme.spacing[8]}}
           />

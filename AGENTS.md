@@ -48,6 +48,7 @@ Maintain and extend the app with consistency and minimal risk. Prioritize produc
 - Home screen layout:
   - Top summary (outside cards): `Overall Total` label + larger total value.
   - First card: `This Month` and `Month Remaining` (percentage + progress bar + days left in month).
+    - `Month Remaining` progress bar runs a smooth left-to-right gradient sweep while Home is focused (`pulseIntervalMs=2200`).
   - Second card: `Daily Rate` and `Start Date`.
 - Counter values are based on persisted settings and local date/time.
 
@@ -127,6 +128,9 @@ Rules:
 - Snackbar layering/timing invariant: opening dialogs/popups must not reset snackbar animation/timer; snackbar remains visually on top and undimmed.
 - `AppListRow`: min height `56`, semantic typography (`titleMedium`, `bodySmall`).
 - `AppProgressBar`: tokenized track/fill, clamped `0..1` progress, accessible `progressbar` semantics.
+  - Optional periodic sweep props: `pulseIntervalMs`, `pulseEnabled`.
+  - Sweep is smooth left-to-right gradient overlay and is disabled when iOS Reduce Motion is enabled.
+  - First sweep triggers after fill layout stabilizes to avoid jank on initial app open.
 
 ## Preferred Workflow For Changes
 
