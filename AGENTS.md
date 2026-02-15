@@ -48,6 +48,7 @@ Maintain and extend the app with consistency and minimal risk. Prioritize produc
 - Home screen shows one card with:
   - `Overall Total`
   - `This Month`
+  - `Month Remaining` (percentage + progress bar + days left in month)
   - `Daily Rate`
   - `Start Date`
 - Counter values are based on persisted settings and local date/time.
@@ -74,6 +75,7 @@ Use these for all screen-level UI:
 - `AppDialog`
 - `AppSnackbar`
 - `AppListRow`
+- `AppProgressBar`
 
 Rules:
 
@@ -126,6 +128,7 @@ Rules:
 - `AppSnackbar`: bottom safe-area placement, default auto-dismiss `3000ms`, tokenized style, supports `tone` (`success`/`info`/`error`) and event-based replay via `eventId`.
 - Snackbar layering/timing invariant: opening dialogs/popups must not reset snackbar animation/timer; snackbar remains visually on top and undimmed.
 - `AppListRow`: min height `56`, semantic typography (`titleMedium`, `bodySmall`).
+- `AppProgressBar`: tokenized track/fill, clamped `0..1` progress, accessible `progressbar` semantics.
 
 ## Preferred Workflow For Changes
 

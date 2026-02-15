@@ -11,6 +11,12 @@ type CounterSettings = {
   startDate: Date;
 };
 
+export type MonthRemainingProgress = {
+  daysInMonth: number;
+  daysLeft: number;
+  remainingRatio: number;
+};
+
 function normalizeDailyAmount(amount: number): number {
   if (!Number.isFinite(amount) || amount < 0) {
     return DEFAULT_DAILY_AMOUNT;
@@ -95,6 +101,28 @@ export function calculateCounterTotals(
   return {
     monthly: monthlyDays * normalizedDailyAmount,
     overall: overallDays * normalizedDailyAmount,
+  };
+}
+
+export function calculateMonthRemainingProgress(now: Date): MonthRemainingProgress {
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const totalDurationMs = nextMonthStart.getTime() - monthStart.getTime();
+  const remainingDurationMs = Math.max(0, nextMonthStart.getTime() - now.getTime());
+  const remainingRatio =
+    totalDurationMs <= 0
+      ? 0
+      : Math.min(1, Math.max(0, remainingDurationMs / totalDurationMs));
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const daysLeft = Math.max(
+    0,
+    localDayNumber(nextMonthStart) - localDayNumber(startOfLocalDay(now)),
+  );
+
+  return {
+    daysInMonth,
+    daysLeft,
+    remainingRatio,
   };
 }
 

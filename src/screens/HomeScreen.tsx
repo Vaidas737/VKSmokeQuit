@@ -3,10 +3,12 @@ import {useFocusEffect} from '@react-navigation/native';
 import {AppState, StyleSheet, View} from 'react-native';
 
 import {AppCard} from '@/components/AppCard';
+import {AppProgressBar} from '@/components/AppProgressBar';
 import {AppText} from '@/components/AppText';
 import {ScreenContainer} from '@/components/ScreenContainer';
 import {useTheme} from '@/design/theme/ThemeProvider';
 import {
+  calculateMonthRemainingProgress,
   calculateCounterTotals,
   DEFAULT_DAILY_AMOUNT,
   formatDateYmd,
@@ -72,6 +74,9 @@ export function HomeScreen() {
     () => calculateCounterTotals(startDate, dailyAmount, now),
     [dailyAmount, now, startDate],
   );
+  const monthRemaining = useMemo(() => calculateMonthRemainingProgress(now), [now]);
+  const monthRemainingPercent = Math.round(monthRemaining.remainingRatio * 100);
+  const daysLabel = monthRemaining.daysLeft === 1 ? 'day' : 'days';
 
   return (
     <ScreenContainer>
@@ -80,6 +85,23 @@ export function HomeScreen() {
           <AppText variant="titleLarge">Overall Total: ₪{totals.overall}</AppText>
           <AppText style={{marginTop: theme.spacing[12]}} variant="titleLarge">
             This Month: ₪{totals.monthly}
+          </AppText>
+          <AppText
+            color="onSurfaceVariant"
+            style={{marginTop: theme.spacing[8]}}
+            variant="bodySmall">
+            Month Remaining: {monthRemainingPercent}%
+          </AppText>
+          <AppProgressBar
+            accessibilityLabel="Month remaining progress"
+            progress={monthRemaining.remainingRatio}
+            style={{marginTop: theme.spacing[8]}}
+          />
+          <AppText
+            color="onSurfaceVariant"
+            style={{marginTop: theme.spacing[8]}}
+            variant="bodySmall">
+            {monthRemaining.daysLeft} {daysLabel} left out of {monthRemaining.daysInMonth}
           </AppText>
           <AppText color="onSurfaceVariant" style={{marginTop: theme.spacing[16]}}>
             Daily Rate: ₪{dailyAmount}/day
