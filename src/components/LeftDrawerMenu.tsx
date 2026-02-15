@@ -150,21 +150,6 @@ export function LeftDrawerMenu({
             leading={
               <MaterialIcons
                 color={theme.colors.onSurfaceVariant}
-                name="palette"
-                size={theme.spacing[24]}
-              />
-            }
-            onPress={() => {
-              onClose();
-              onOpenAppearance();
-            }}
-            title="Appearance"
-          />
-
-          <AppListRow
-            leading={
-              <MaterialIcons
-                color={theme.colors.onSurfaceVariant}
                 name="calculate"
                 size={theme.spacing[24]}
               />
@@ -174,6 +159,21 @@ export function LeftDrawerMenu({
               onOpenCounter();
             }}
             title="Counter"
+          />
+
+          <AppListRow
+            leading={
+              <MaterialIcons
+                color={theme.colors.onSurfaceVariant}
+                name="palette"
+                size={theme.spacing[24]}
+              />
+            }
+            onPress={() => {
+              onClose();
+              onOpenAppearance();
+            }}
+            title="Appearance"
           />
         </SafeAreaView>
       </Animated.View>

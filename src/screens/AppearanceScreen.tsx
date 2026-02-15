@@ -20,12 +20,12 @@ const THEME_OPTIONS: Array<{
     title: 'System',
   },
   {
-    description: 'Use the earthy light palette at all times.',
+    description: 'Use the earthy light theme at all times.',
     mode: 'light',
     title: 'Light',
   },
   {
-    description: 'Use the earthy dark palette at all times.',
+    description: 'Use the earthy dark theme at all times.',
     mode: 'dark',
     title: 'Dark',
   },
@@ -56,7 +56,7 @@ export function AppearanceScreen() {
       <View style={{gap: theme.spacing[16]}}>
         <AppCard>
           <AppText color="onSurfaceVariant" style={{marginTop: theme.spacing[8]}} variant="bodySmall">
-            Active palette: {resolvedModeLabel}
+            Active theme: {resolvedModeLabel}
           </AppText>
 
           <View style={{marginTop: theme.spacing[12]}}>

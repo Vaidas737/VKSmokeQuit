@@ -40,7 +40,7 @@ Maintain and extend an iOS-only React Native app using a strict, token-based Mat
   - `src/assets`: placeholder for static assets
 - Core user flow:
   - `Home`: launch surface, savings totals, drawer entry point
-  - `Counter`: update daily amount and reset start date
+  - `Counter`: choose/save start date via date picker dialog, reset start date, and update daily amount
   - `Appearance`: theme preference management
   - `About`: app context/info screen
 
@@ -53,6 +53,7 @@ Maintain and extend an iOS-only React Native app using a strict, token-based Mat
 - Drawer closes via outside tap or left swipe gesture.
 - Opening/closing uses matched slide animation with gentle full-screen dim/undim scrim animation.
 - Drawer contains `Appearance` and `Counter`.
+- Drawer row order is `Counter` first, `Appearance` second.
 - Drawer `Appearance` row uses a leading Material icon (`palette`) and no subtitle/description.
 - Drawer `Counter` row uses a leading Material icon (`calculate`) and no subtitle/description.
 - Selecting drawer `Appearance` navigates to `AppearanceScreen`.

@@ -1,3 +1,4 @@
+import type {ReactNode} from 'react';
 import {Modal, Pressable, StyleSheet, View} from 'react-native';
 
 import {AppButton} from '@/components/AppButton';
@@ -8,6 +9,7 @@ import {withOpacity} from '@/design/theme';
 
 type AppDialogProps = {
   cancelLabel?: string;
+  children?: ReactNode;
   confirmLabel?: string;
   message?: string;
   onCancel?: () => void;
@@ -19,6 +21,7 @@ type AppDialogProps = {
 
 export function AppDialog({
   cancelLabel = 'Cancel',
+  children,
   confirmLabel = 'Confirm',
   message,
   onCancel,
@@ -52,6 +55,7 @@ export function AppDialog({
               {message}
             </AppText>
           ) : null}
+          {children ? <View style={styles.content}>{children}</View> : null}
 
           <View style={styles.actions}>
             <AppButton
@@ -92,5 +96,8 @@ const styles = StyleSheet.create({
   dialogCard: {
     maxWidth: 420,
     width: '100%',
+  },
+  content: {
+    marginTop: 12,
   },
 });
