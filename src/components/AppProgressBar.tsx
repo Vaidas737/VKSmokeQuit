@@ -58,7 +58,7 @@ export function AppProgressBar({
     () => {
       const stopCount = 61;
       const edgeOpacity = theme.isDark ? 0.034 : 0.01;
-      const peakOpacity = theme.isDark ? 0.81 : 0.55;
+      const peakOpacity = theme.isDark ? 0.74 : 0.55;
 
       return Array.from({length: stopCount}, (_, index) => {
         const normalized = index / (stopCount - 1);
@@ -84,7 +84,7 @@ export function AppProgressBar({
       sweepProgress.interpolate({
         inputRange: [0, 0.08, 0.22, 0.5, 0.78, 0.92, 1],
         outputRange: theme.isDark
-          ? [0, 0.17, 0.6, 0.86, 0.6, 0.17, 0]
+          ? [0, 0.16, 0.54, 0.76, 0.54, 0.16, 0]
           : [0, 0.1, 0.4, 0.66, 0.4, 0.1, 0],
       }),
     [sweepProgress, theme.isDark],

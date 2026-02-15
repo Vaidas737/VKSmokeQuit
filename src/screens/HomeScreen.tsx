@@ -11,7 +11,6 @@ import {
   calculateMonthRemainingProgress,
   calculateCounterTotals,
   DEFAULT_DAILY_AMOUNT,
-  formatDateYmd,
   getStoredCounterSettings,
   startOfLocalDay,
 } from '@/utils/counterStorage';
@@ -82,16 +81,12 @@ export function HomeScreen() {
   return (
     <ScreenContainer>
       <View style={styles.content}>
-        <View style={{marginBottom: theme.spacing[24]}}>
-          <AppText color="onSurfaceVariant" variant="titleMedium">
-            Overall Total
-          </AppText>
-          <AppText
-            color="primary"
-            style={{marginTop: theme.spacing[8]}}
-            variant="displaySmall">
-            ₪{totals.overall}
-          </AppText>
+        <View style={[styles.summary, {marginBottom: theme.spacing[24]}]}>
+          <View style={styles.summaryRow}>
+            <AppText color="primary" style={styles.summaryValue} variant="displaySmall">
+              ₪{totals.overall}
+            </AppText>
+          </View>
         </View>
         <AppCard>
           <AppText variant="titleLarge">
@@ -117,14 +112,6 @@ export function HomeScreen() {
             {monthRemaining.daysLeft} {daysLabel} left out of {monthRemaining.daysInMonth}
           </AppText>
         </AppCard>
-        <AppCard style={{marginTop: theme.spacing[16]}}>
-          <AppText color="onSurfaceVariant">
-            Daily Rate: ₪{dailyAmount}/day
-          </AppText>
-          <AppText color="onSurfaceVariant" style={{marginTop: theme.spacing[8]}}>
-            Start Date: {formatDateYmd(startDate)}
-          </AppText>
-        </AppCard>
       </View>
     </ScreenContainer>
   );
@@ -134,5 +121,17 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: 'flex-start',
+  },
+  summary: {
+    width: '100%',
+  },
+  summaryRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  summaryValue: {
+    textAlign: 'center',
   },
 });
