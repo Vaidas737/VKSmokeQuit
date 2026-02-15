@@ -34,6 +34,7 @@ Maintain and extend the app with consistency and minimal risk. Prioritize produc
 - Stack routes: `Home`, `Appearance`, `Counter`, `About`.
 - Header implementation must use `AppTopBar`.
 - Home header uses leading menu button.
+- On Home, if the withdraw dialog is open, pressing the menu button closes the dialog.
 - Child screens use back icon behavior.
 - Drawer is a custom left slide-in overlay (`LeftDrawerMenu`), square edge, responsive width.
 - Drawer closes via outside tap or left swipe.
@@ -48,7 +49,7 @@ Maintain and extend the app with consistency and minimal risk. Prioritize produc
 - Home screen layout:
   - Top summary (outside cards): centered larger total value (no label).
   - First card: `This Month` and `Month Remaining` (percentage + progress bar + days left in month).
-    - `Month Remaining` progress bar runs a smooth left-to-right gradient sweep while Home is focused (`pulseIntervalMs=2200`).
+    - `Month Remaining` progress bar runs a smooth left-to-right gradient sweep while Home is focused and no popup/dialog is open (`pulseIntervalMs=2200`).
 - Counter values are based on persisted settings and local date/time.
 
 ## Theme and Persistence Rules

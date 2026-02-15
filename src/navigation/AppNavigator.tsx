@@ -98,7 +98,9 @@ export function AppNavigator() {
             contentStyle: {backgroundColor: theme.colors.background},
             header: TopBarHeader,
           })}>
-          <Stack.Screen component={HomeScreen} name={ROUTES.Home} />
+          <Stack.Screen name={ROUTES.Home}>
+            {() => <HomeScreen isMenuVisible={isMenuVisible} />}
+          </Stack.Screen>
           <Stack.Screen component={AppearanceScreen} name={ROUTES.Appearance} />
           <Stack.Screen component={CounterScreen} name={ROUTES.Counter} />
           <Stack.Screen component={AboutScreen} name={ROUTES.About} />

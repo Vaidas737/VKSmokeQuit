@@ -75,7 +75,11 @@ const formatWithdrawalDate = (createdAtIso: string): string => {
   }).format(date);
 };
 
-export function HomeScreen() {
+type HomeScreenProps = {
+  isMenuVisible?: boolean;
+};
+
+export function HomeScreen({isMenuVisible = false}: HomeScreenProps) {
   const {theme} = useTheme();
   const isFocused = useIsFocused();
   const [now, setNow] = useState<Date>(() => new Date());
@@ -104,6 +108,12 @@ export function HomeScreen() {
     setWithdrawDialogVisible(false);
     setWithdrawAmountInput('');
   }, []);
+
+  useEffect(() => {
+    if (isMenuVisible && isWithdrawDialogVisible) {
+      closeWithdrawDialog();
+    }
+  }, [closeWithdrawDialog, isMenuVisible, isWithdrawDialogVisible]);
 
   const hydrateHomeData = useCallback(async () => {
     const [storedCounterSettings, storedWithdrawals] = await Promise.all([
@@ -166,6 +176,7 @@ export function HomeScreen() {
   const monthRemaining = useMemo(() => calculateMonthRemainingProgress(now), [now]);
   const monthRemainingPercent = Math.round(monthRemaining.remainingRatio * 100);
   const daysLabel = monthRemaining.daysLeft === 1 ? 'day' : 'days';
+  const isMonthRemainingPulseEnabled = isFocused && !isWithdrawDialogVisible;
   const withdrawalError = useMemo(
     () =>
       getWithdrawalInputError(
@@ -223,7 +234,7 @@ export function HomeScreen() {
             </AppText>
             <AppProgressBar
               accessibilityLabel="Month remaining progress"
-              pulseEnabled={isFocused}
+              pulseEnabled={isMonthRemainingPulseEnabled}
               pulseIntervalMs={2200}
               progress={monthRemaining.remainingRatio}
               style={{marginTop: theme.spacing[8]}}

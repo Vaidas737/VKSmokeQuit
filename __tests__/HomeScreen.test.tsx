@@ -5,20 +5,27 @@ import {TextInput} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 import {STORAGE_KEYS} from '@/constants/storage';
+import {AppProgressBar} from '@/components/AppProgressBar';
 import {ThemeProvider} from '@/design/theme/ThemeProvider';
 import {HomeScreen} from '@/screens/HomeScreen';
 import {calculateWithdrawalBalances, startOfLocalDay} from '@/utils/counterStorage';
 
-const renderHomeScreen = () =>
-  render(
-    <SafeAreaProvider>
-      <ThemeProvider>
-        <NavigationContainer>
-          <HomeScreen />
-        </NavigationContainer>
-      </ThemeProvider>
-    </SafeAreaProvider>,
-  );
+type HomeScreenRenderProps = {
+  isMenuVisible?: boolean;
+};
+
+const createHomeScreenTree = (props: HomeScreenRenderProps = {}) => (
+  <SafeAreaProvider>
+    <ThemeProvider>
+      <NavigationContainer>
+        <HomeScreen {...props} />
+      </NavigationContainer>
+    </ThemeProvider>
+  </SafeAreaProvider>
+);
+
+const renderHomeScreen = (props: HomeScreenRenderProps = {}) =>
+  render(createHomeScreenTree(props));
 
 const getButtonDisabledState = (buttonNode: {props: Record<string, unknown>}): boolean =>
   Boolean(
@@ -175,5 +182,63 @@ describe('HomeScreen', () => {
 
     const updatedOverallAmount = getAmountFromTextNode(getAllByText(/^₪\d+$/)[0]);
     expect(updatedOverallAmount).toBe(initialOverallAmount - 50);
+  });
+
+  it('pauses month remaining pulse while withdraw dialog is visible', async () => {
+    const now = new Date();
+    const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    await AsyncStorage.multiSet([
+      [STORAGE_KEYS.counterStartDate, previousMonthStart.toISOString()],
+      [STORAGE_KEYS.counterDailyAmount, '10'],
+      [STORAGE_KEYS.counterWithdrawalHistory, '[]'],
+    ]);
+
+    const {UNSAFE_getByType, getByRole, getByText} = renderHomeScreen();
+
+    await waitFor(() => {
+      expect(getByRole('button', {name: 'Withdraw'})).toBeTruthy();
+      expect(UNSAFE_getByType(AppProgressBar).props.pulseEnabled).toBe(true);
+    });
+
+    pressButtonByLabel(getByText, 'Withdraw');
+
+    await waitFor(() => {
+      expect(getByText(/You can withdraw only from past months/)).toBeTruthy();
+      expect(UNSAFE_getByType(AppProgressBar).props.pulseEnabled).toBe(false);
+    });
+
+    pressButtonByLabel(getByText, 'Cancel');
+
+    await waitFor(() => {
+      expect(UNSAFE_getByType(AppProgressBar).props.pulseEnabled).toBe(true);
+    });
+  });
+
+  it('closes withdraw dialog when menu opens', async () => {
+    const now = new Date();
+    const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    await AsyncStorage.multiSet([
+      [STORAGE_KEYS.counterStartDate, previousMonthStart.toISOString()],
+      [STORAGE_KEYS.counterDailyAmount, '10'],
+      [STORAGE_KEYS.counterWithdrawalHistory, '[]'],
+    ]);
+
+    const {getByRole, getByText, queryByText, rerender} = renderHomeScreen();
+
+    await waitFor(() => {
+      expect(getByRole('button', {name: 'Withdraw'})).toBeTruthy();
+    });
+
+    pressButtonByLabel(getByText, 'Withdraw');
+
+    await waitFor(() => {
+      expect(getByText(/You can withdraw only from past months/)).toBeTruthy();
+    });
+
+    rerender(createHomeScreenTree({isMenuVisible: true}));
+
+    await waitFor(() => {
+      expect(queryByText(/You can withdraw only from past months/)).toBeNull();
+    });
   });
 });
