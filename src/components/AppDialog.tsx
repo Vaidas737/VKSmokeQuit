@@ -1,5 +1,11 @@
-import type {ReactNode} from 'react';
-import {Pressable, StyleSheet, View} from 'react-native';
+import {useEffect, useRef, useState, type ReactNode} from 'react';
+import {
+  Animated,
+  Easing,
+  Pressable,
+  StyleSheet,
+  View,
+} from 'react-native';
 
 import {AppButton} from '@/components/AppButton';
 import {AppCard} from '@/components/AppCard';
@@ -10,6 +16,7 @@ import {withOpacity} from '@/design/theme';
 type AppDialogProps = {
   cancelLabel?: string;
   children?: ReactNode;
+  confirmDisabled?: boolean;
   confirmLabel?: string;
   message?: string;
   onCancel?: () => void;
@@ -19,9 +26,13 @@ type AppDialogProps = {
   visible: boolean;
 };
 
+const OPEN_DURATION_MS = 240;
+const CLOSE_DURATION_MS = 190;
+
 export function AppDialog({
   cancelLabel = 'Cancel',
   children,
+  confirmDisabled = false,
   confirmLabel = 'Confirm',
   message,
   onCancel,
@@ -31,49 +42,107 @@ export function AppDialog({
   visible,
 }: AppDialogProps) {
   const {theme} = useTheme();
+  const animationProgressRef = useRef(new Animated.Value(visible ? 1 : 0));
+  const animationProgress = animationProgressRef.current;
+  const [isRendered, setIsRendered] = useState(visible);
 
-  if (!visible) {
+  useEffect(() => {
+    if (visible) {
+      setIsRendered(true);
+    }
+  }, [visible]);
+
+  useEffect(() => {
+    if (!isRendered) {
+      return;
+    }
+
+    animationProgress.stopAnimation();
+    Animated.timing(animationProgress, {
+      duration: visible ? OPEN_DURATION_MS : CLOSE_DURATION_MS,
+      easing: visible ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic),
+      toValue: visible ? 1 : 0,
+      useNativeDriver: true,
+    }).start(({finished}) => {
+      if (finished && !visible) {
+        setIsRendered(false);
+      }
+    });
+  }, [animationProgress, isRendered, visible]);
+
+  if (!isRendered) {
     return null;
   }
+
+  const dialogOpacity = animationProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.92, 1],
+  });
+  const dialogScaleX = animationProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.96, 1],
+  });
+  const dialogScaleY = animationProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.88, 1],
+  });
+  const dialogTranslateY = animationProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [theme.spacing[12], -theme.spacing[8]],
+  });
 
   return (
     <View
       pointerEvents="box-none"
       style={styles.root}>
-      <View
+      <Animated.View
         style={[
           styles.overlay,
           {
             backgroundColor: withOpacity(theme.colors.onBackground, theme.state.scrimOpacity),
+            opacity: animationProgress,
           },
         ]}>
         <Pressable onPress={onDismiss} style={StyleSheet.absoluteFill} />
+        <Animated.View
+          style={[
+            styles.dialogCardContainer,
+            {
+              opacity: dialogOpacity,
+              transform: [
+                {translateY: dialogTranslateY},
+                {scaleX: dialogScaleX},
+                {scaleY: dialogScaleY},
+              ],
+            },
+          ]}>
+          <AppCard style={styles.dialogCard}>
+            <AppText variant="headlineSmall">{title}</AppText>
+            {message ? (
+              <AppText color="onSurfaceVariant" style={styles.message} variant="bodyMedium">
+                {message}
+              </AppText>
+            ) : null}
+            {children ? <View style={styles.content}>{children}</View> : null}
 
-        <AppCard style={styles.dialogCard}>
-          <AppText variant="headlineSmall">{title}</AppText>
-          {message ? (
-            <AppText color="onSurfaceVariant" style={styles.message} variant="bodyMedium">
-              {message}
-            </AppText>
-          ) : null}
-          {children ? <View style={styles.content}>{children}</View> : null}
-
-          <View style={styles.actions}>
-            <AppButton
-              onPress={onCancel ?? onDismiss}
-              variant="tertiary"
-              fullWidth={false}>
-              {cancelLabel}
-            </AppButton>
-            <AppButton
-              onPress={onConfirm ?? onDismiss}
-              variant="primary"
-              fullWidth={false}>
-              {confirmLabel}
-            </AppButton>
-          </View>
-        </AppCard>
-      </View>
+            <View style={styles.actions}>
+              <AppButton
+                onPress={onCancel ?? onDismiss}
+                variant="tertiary"
+                fullWidth={false}>
+                {cancelLabel}
+              </AppButton>
+              <AppButton
+                disabled={confirmDisabled}
+                onPress={onConfirm ?? onDismiss}
+                variant="primary"
+                fullWidth={false}>
+                {confirmLabel}
+              </AppButton>
+            </View>
+          </AppCard>
+        </Animated.View>
+      </Animated.View>
     </View>
   );
 }
@@ -95,6 +164,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   dialogCard: {
+    width: '100%',
+  },
+  dialogCardContainer: {
     maxWidth: 420,
     width: '100%',
   },

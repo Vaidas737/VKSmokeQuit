@@ -1,4 +1,8 @@
-import {calculateMonthRemainingProgress} from '@/utils/counterStorage';
+import {
+  calculateMonthRemainingProgress,
+  calculateWithdrawalBalances,
+  type CounterWithdrawalEntry,
+} from '@/utils/counterStorage';
 
 describe('calculateMonthRemainingProgress', () => {
   it('returns full remaining progress at the start of the month', () => {
@@ -29,5 +33,70 @@ describe('calculateMonthRemainingProgress', () => {
     expect(result.daysLeft).toBe(1);
     expect(result.remainingRatio).toBeGreaterThan(0);
     expect(result.remainingRatio).toBeLessThan(0.01);
+  });
+});
+
+describe('calculateWithdrawalBalances', () => {
+  it('excludes current month from past accumulated available amount', () => {
+    const result = calculateWithdrawalBalances(
+      new Date(2026, 0, 1),
+      10,
+      new Date(2026, 1, 15, 12, 0, 0, 0),
+      [],
+    );
+
+    expect(result.generatedOverall).toBe(460);
+    expect(result.generatedMonthly).toBe(150);
+    expect(result.pastAccumulatedAvailable).toBe(310);
+    expect(result.withdrawnTotal).toBe(0);
+    expect(result.adjustedOverall).toBe(460);
+  });
+
+  it('decreases available and adjusted totals by valid withdrawals', () => {
+    const withdrawals: CounterWithdrawalEntry[] = [
+      {
+        amount: 100,
+        createdAtIso: '2026-02-14T10:00:00.000Z',
+        id: 'withdraw-2',
+      },
+      {
+        amount: 40,
+        createdAtIso: '2026-01-20T10:00:00.000Z',
+        id: 'withdraw-1',
+      },
+    ];
+
+    const result = calculateWithdrawalBalances(
+      new Date(2026, 0, 1),
+      10,
+      new Date(2026, 1, 15, 12, 0, 0, 0),
+      withdrawals,
+    );
+
+    expect(result.withdrawnTotal).toBe(140);
+    expect(result.pastAccumulatedAvailable).toBe(170);
+    expect(result.adjustedOverall).toBe(320);
+  });
+
+  it('clamps adjusted and available amounts to zero when withdrawals exceed totals', () => {
+    const withdrawals: CounterWithdrawalEntry[] = [
+      {
+        amount: 500,
+        createdAtIso: '2026-02-02T10:00:00.000Z',
+        id: 'withdraw-over',
+      },
+    ];
+
+    const result = calculateWithdrawalBalances(
+      new Date(2026, 0, 1),
+      10,
+      new Date(2026, 1, 2, 12, 0, 0, 0),
+      withdrawals,
+    );
+
+    expect(result.generatedOverall).toBe(330);
+    expect(result.withdrawnTotal).toBe(500);
+    expect(result.pastAccumulatedAvailable).toBe(0);
+    expect(result.adjustedOverall).toBe(0);
   });
 });

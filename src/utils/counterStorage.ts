@@ -11,10 +11,24 @@ type CounterSettings = {
   startDate: Date;
 };
 
+export type CounterWithdrawalEntry = {
+  amount: number;
+  createdAtIso: string;
+  id: string;
+};
+
 export type MonthRemainingProgress = {
   daysInMonth: number;
   daysLeft: number;
   remainingRatio: number;
+};
+
+type CounterWithdrawalBalances = {
+  adjustedOverall: number;
+  generatedMonthly: number;
+  generatedOverall: number;
+  pastAccumulatedAvailable: number;
+  withdrawnTotal: number;
 };
 
 function normalizeDailyAmount(amount: number): number {
@@ -49,6 +63,101 @@ function parseStoredDailyAmount(value: string | null): number | null {
   }
 
   return Math.floor(parsed);
+}
+
+function isValidIsoDate(value: string): boolean {
+  const parsed = new Date(value);
+
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString() === value;
+}
+
+function compareNewestFirst(
+  left: CounterWithdrawalEntry,
+  right: CounterWithdrawalEntry,
+): number {
+  const rightTime = new Date(right.createdAtIso).getTime();
+  const leftTime = new Date(left.createdAtIso).getTime();
+
+  return rightTime - leftTime;
+}
+
+function normalizeStoredWithdrawalHistory(
+  value: string | null,
+): {history: CounterWithdrawalEntry[]; isNormalized: boolean} {
+  if (!value) {
+    return {history: [], isNormalized: false};
+  }
+
+  try {
+    const parsed = JSON.parse(value);
+    if (!Array.isArray(parsed)) {
+      return {history: [], isNormalized: true};
+    }
+
+    const normalized = parsed
+      .map((candidate): CounterWithdrawalEntry | null => {
+        if (!candidate || typeof candidate !== 'object') {
+          return null;
+        }
+
+        const {amount, createdAtIso, id} = candidate as {
+          amount?: unknown;
+          createdAtIso?: unknown;
+          id?: unknown;
+        };
+
+        if (
+          typeof amount !== 'number' ||
+          !Number.isFinite(amount) ||
+          !Number.isInteger(amount) ||
+          amount <= 0
+        ) {
+          return null;
+        }
+
+        if (typeof createdAtIso !== 'string' || !isValidIsoDate(createdAtIso)) {
+          return null;
+        }
+
+        if (typeof id !== 'string' || id.trim().length === 0) {
+          return null;
+        }
+
+        return {
+          amount,
+          createdAtIso,
+          id,
+        };
+      })
+      .filter((entry): entry is CounterWithdrawalEntry => Boolean(entry))
+      .sort(compareNewestFirst);
+
+    const isNormalized = JSON.stringify(normalized) !== JSON.stringify(parsed);
+
+    return {
+      history: normalized,
+      isNormalized,
+    };
+  } catch {
+    return {history: [], isNormalized: true};
+  }
+}
+
+function normalizeWithdrawalHistoryEntries(
+  history: CounterWithdrawalEntry[],
+): CounterWithdrawalEntry[] {
+  return history
+    .filter(
+      entry =>
+        Number.isFinite(entry.amount) &&
+        Number.isInteger(entry.amount) &&
+        entry.amount > 0 &&
+        typeof entry.id === 'string' &&
+        entry.id.trim().length > 0 &&
+        typeof entry.createdAtIso === 'string' &&
+        isValidIsoDate(entry.createdAtIso),
+    )
+    .sort(compareNewestFirst);
 }
 
 export function startOfLocalDay(date: Date): Date {
@@ -101,6 +210,29 @@ export function calculateCounterTotals(
   return {
     monthly: monthlyDays * normalizedDailyAmount,
     overall: overallDays * normalizedDailyAmount,
+  };
+}
+
+export function calculateWithdrawalBalances(
+  startDate: Date,
+  dailyAmount: number,
+  now: Date,
+  withdrawals: CounterWithdrawalEntry[],
+): CounterWithdrawalBalances {
+  const totals = calculateCounterTotals(startDate, dailyAmount, now);
+  const normalizedWithdrawals = normalizeWithdrawalHistoryEntries(withdrawals);
+  const pastGenerated = Math.max(0, totals.overall - totals.monthly);
+  const withdrawnTotal = normalizedWithdrawals.reduce(
+    (sum, entry) => sum + entry.amount,
+    0,
+  );
+
+  return {
+    adjustedOverall: Math.max(0, totals.overall - withdrawnTotal),
+    generatedMonthly: totals.monthly,
+    generatedOverall: totals.overall,
+    pastAccumulatedAvailable: Math.max(0, pastGenerated - withdrawnTotal),
+    withdrawnTotal,
   };
 }
 
@@ -175,4 +307,58 @@ export async function saveCounterStartDate(date: Date): Promise<Date> {
 
 export async function resetCounterStartDate(): Promise<Date> {
   return saveCounterStartDate(new Date());
+}
+
+export async function getStoredCounterWithdrawalHistory(): Promise<
+  CounterWithdrawalEntry[]
+> {
+  try {
+    const storedHistoryValue = await AsyncStorage.getItem(
+      STORAGE_KEYS.counterWithdrawalHistory,
+    );
+    const parsed = normalizeStoredWithdrawalHistory(storedHistoryValue);
+
+    if (parsed.isNormalized) {
+      try {
+        await AsyncStorage.setItem(
+          STORAGE_KEYS.counterWithdrawalHistory,
+          JSON.stringify(parsed.history),
+        );
+      } catch {
+        // Non-blocking; the normalized value will be retried on next read.
+      }
+    }
+
+    return parsed.history;
+  } catch {
+    return [];
+  }
+}
+
+export async function saveCounterWithdrawal(
+  amount: number,
+): Promise<CounterWithdrawalEntry[]> {
+  const normalizedAmount = Math.floor(amount);
+  if (
+    !Number.isFinite(normalizedAmount) ||
+    !Number.isInteger(normalizedAmount) ||
+    normalizedAmount <= 0
+  ) {
+    return getStoredCounterWithdrawalHistory();
+  }
+
+  const existingHistory = await getStoredCounterWithdrawalHistory();
+  const nextEntry: CounterWithdrawalEntry = {
+    amount: normalizedAmount,
+    createdAtIso: new Date().toISOString(),
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+  };
+  const nextHistory = [nextEntry, ...existingHistory].sort(compareNewestFirst);
+
+  await AsyncStorage.setItem(
+    STORAGE_KEYS.counterWithdrawalHistory,
+    JSON.stringify(nextHistory),
+  );
+
+  return nextHistory;
 }
