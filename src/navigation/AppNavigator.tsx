@@ -26,7 +26,7 @@ const DrawerMenuContext = createContext<{
 
 function getTitleForRoute(routeName: keyof RootStackParamList): string {
   if (routeName === ROUTES.Home) {
-    return 'Smoke-Free Journey';
+    return 'Smoke Free Journey';
   }
 
   if (routeName === ROUTES.Appearance) {

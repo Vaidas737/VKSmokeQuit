@@ -300,7 +300,7 @@ export function SplashScreen() {
 
         <View style={[styles.textBlock, {gap: theme.spacing[8]}]}>
           <AppText style={styles.centerText} variant="headlineSmall">
-            Smoke-Free Start
+            Smoke Free Start
           </AppText>
         </View>
       </View>

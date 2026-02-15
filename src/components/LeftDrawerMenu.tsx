@@ -44,6 +44,30 @@ export function LeftDrawerMenu({
   );
   const menuScrimOpacity = theme.state.scrimOpacity * 0.5;
   const swipeCloseDistance = theme.spacing[24];
+  const menuHeaderStyle = useMemo(
+    () => ({
+      marginBottom: theme.spacing[12],
+      marginTop: theme.spacing[12],
+      paddingHorizontal: theme.spacing[16],
+      paddingVertical: theme.spacing[12],
+    }),
+    [theme.spacing],
+  );
+  const menuHeaderIconStyle = useMemo(
+    () => ({
+      marginRight: theme.spacing[8],
+    }),
+    [theme.spacing],
+  );
+  const menuHeaderIconBadgeStyle = useMemo(
+    () => ({
+      backgroundColor: theme.colors.primary,
+      borderRadius: theme.spacing[20],
+      height: theme.spacing[40],
+      width: theme.spacing[40],
+    }),
+    [theme.colors.primary, theme.spacing],
+  );
   const drawerX = useRef(new Animated.Value(-drawerWidth)).current;
   const scrimOpacity = useRef(new Animated.Value(0)).current;
   const drawerPanResponder = useMemo(
@@ -142,8 +166,13 @@ export function LeftDrawerMenu({
           theme.elevation.level3,
         ]}>
         <SafeAreaView edges={['top', 'left', 'bottom']} style={styles.drawerSafeArea}>
-          <View style={{paddingHorizontal: theme.spacing[16], paddingVertical: theme.spacing[12]}}>
-            <AppText variant="titleMedium">Menu</AppText>
+          <View style={[styles.menuHeader, menuHeaderStyle]}>
+            <View style={[styles.menuHeaderIconBadge, menuHeaderIconStyle, menuHeaderIconBadgeStyle]}>
+              <MaterialIcons color={theme.colors.onPrimary} name="smoke-free" size={theme.spacing[24]} />
+            </View>
+            <AppText color="primary" variant="headlineSmall">
+              Smoke Free
+            </AppText>
           </View>
 
           <AppListRow
@@ -191,6 +220,15 @@ const styles = StyleSheet.create({
   },
   drawerSafeArea: {
     flex: 1,
+  },
+  menuHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  menuHeaderIconBadge: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,

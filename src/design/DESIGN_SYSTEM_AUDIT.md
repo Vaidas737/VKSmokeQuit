@@ -71,7 +71,7 @@
 
 - Chosen pattern: **stack navigation with custom `AppTopBar` header**.
 - Header title strategy:
-  - Home: "Smoke-Free Journey".
+  - Home: "Smoke Free Journey".
   - Child screens: route title.
 - Screen background: token `background` from theme.
 - DON’T use mixed tab/header paradigms.
