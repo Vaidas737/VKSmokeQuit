@@ -1,0 +1,4 @@
+interface:
+  display_name: "End"
+  short_description: "Update AGENTS.md with minimal verified edits"
+  default_prompt: "Use $end to update only AGENTS.md with minimal, verified edits based on work completed in this session."
