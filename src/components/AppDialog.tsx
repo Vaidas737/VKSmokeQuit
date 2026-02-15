@@ -18,6 +18,7 @@ type AppDialogProps = {
   children?: ReactNode;
   confirmDisabled?: boolean;
   confirmLabel?: string;
+  onClosed?: () => void;
   message?: string;
   onCancel?: () => void;
   onConfirm?: () => void;
@@ -34,6 +35,7 @@ export function AppDialog({
   children,
   confirmDisabled = false,
   confirmLabel = 'Confirm',
+  onClosed,
   message,
   onCancel,
   onConfirm,
@@ -66,9 +68,10 @@ export function AppDialog({
     }).start(({finished}) => {
       if (finished && !visible) {
         setIsRendered(false);
+        onClosed?.();
       }
     });
-  }, [animationProgress, isRendered, visible]);
+  }, [animationProgress, isRendered, onClosed, visible]);
 
   if (!isRendered) {
     return null;

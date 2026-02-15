@@ -59,6 +59,7 @@ Maintain and extend the app with consistency and minimal risk. Prioritize produc
   - Withdrawal History card is vertically scrollable inside the card.
     - Rows are tappable and use subtle press animation.
     - Tapping a row opens a details dialog with amount/date and `Cancel` + `Delete` actions.
+    - On details dialog close, amount/date content remains visible until the close animation completes.
     - Deleting a row removes it from history and recalculates the top total amount.
     - Show a bottom gradient dim overlay while more history items are available below; hide it at list end.
   - Bottom-centered branding credit on Home only: `powered by willpower.` (inscription-style treatment).

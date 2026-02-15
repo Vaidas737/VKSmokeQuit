@@ -320,6 +320,43 @@ describe('HomeScreen', () => {
     });
   });
 
+  it('keeps withdrawal details content visible while the dialog is closing', async () => {
+    const now = new Date();
+    const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const historyEntry = {
+      amount: 42,
+      createdAtIso: new Date(now.getFullYear(), now.getMonth(), Math.max(1, now.getDate() - 1))
+        .toISOString(),
+      id: 'history-entry-close-42',
+    };
+    const expectedDateLabel = formatWithdrawalDateForTest(historyEntry.createdAtIso);
+
+    await AsyncStorage.multiSet([
+      [STORAGE_KEYS.counterStartDate, previousMonthStart.toISOString()],
+      [STORAGE_KEYS.counterDailyAmount, '10'],
+      [STORAGE_KEYS.counterWithdrawalHistory, JSON.stringify([historyEntry])],
+    ]);
+
+    const {getByText} = renderHomeScreen();
+
+    await waitFor(() => {
+      expect(getByText(expectedDateLabel)).toBeTruthy();
+    });
+
+    pressWithdrawalHistoryRowByDate(getByText, historyEntry.createdAtIso);
+
+    await waitFor(() => {
+      expect(getByText('Withdrawal details')).toBeTruthy();
+      expect(getByText(`Amount: ₪${historyEntry.amount}`)).toBeTruthy();
+      expect(getByText(`Date: ${expectedDateLabel}`)).toBeTruthy();
+    });
+
+    pressButtonByLabel(getByText, 'Cancel');
+
+    expect(getByText(`Amount: ₪${historyEntry.amount}`)).toBeTruthy();
+    expect(getByText(`Date: ${expectedDateLabel}`)).toBeTruthy();
+  });
+
   it('deletes selected withdrawal entry, updates total, and removes the row', async () => {
     const now = new Date();
     const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 2, 1);

@@ -109,6 +109,8 @@ export function HomeScreen({
     () => initialData?.withdrawHistory ?? [],
   );
   const [isWithdrawDialogVisible, setWithdrawDialogVisible] = useState(false);
+  const [isWithdrawalDetailsDialogVisible, setWithdrawalDetailsDialogVisible] =
+    useState(false);
   const [withdrawAmountInput, setWithdrawAmountInput] = useState('');
   const [selectedWithdrawalEntry, setSelectedWithdrawalEntry] =
     useState<CounterWithdrawalEntry | null>(null);
@@ -146,9 +148,15 @@ export function HomeScreen({
     setWithdrawAmountInput('');
   }, []);
   const closeWithdrawalDetailsDialog = useCallback(() => {
+    setWithdrawalDetailsDialogVisible(false);
+  }, []);
+  const handleWithdrawalDetailsClosed = useCallback(() => {
     setSelectedWithdrawalEntry(null);
   }, []);
-  const isWithdrawalDetailsDialogVisible = selectedWithdrawalEntry !== null;
+  const openWithdrawalDetailsDialog = useCallback((entry: CounterWithdrawalEntry) => {
+    setSelectedWithdrawalEntry(entry);
+    setWithdrawalDetailsDialogVisible(true);
+  }, []);
 
   useEffect(() => {
     if (!isMenuVisible) {
@@ -436,7 +444,7 @@ export function HomeScreen({
                   <AppListRow
                     animateOnPress
                     key={entry.id}
-                    onPress={() => setSelectedWithdrawalEntry(entry)}
+                    onPress={() => openWithdrawalDetailsDialog(entry)}
                     subtitle={formatWithdrawalDate(entry.createdAtIso)}
                     title={`₪${entry.amount}`}
                   />
@@ -571,6 +579,7 @@ export function HomeScreen({
         cancelLabel="Cancel"
         confirmLabel="Delete"
         onCancel={closeWithdrawalDetailsDialog}
+        onClosed={handleWithdrawalDetailsClosed}
         onConfirm={confirmWithdrawalDeletion}
         onDismiss={closeWithdrawalDetailsDialog}
         title="Withdrawal details"
