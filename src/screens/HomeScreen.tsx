@@ -259,6 +259,15 @@ export function HomeScreen({
 
     return calculateMonthRemainingProgress(now);
   }, [now]);
+  const currentDateLabel = useMemo(
+    () =>
+      new Intl.DateTimeFormat(undefined, {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      }).format(now),
+    [now],
+  );
   const monthRemainingPercent = Math.round(monthRemaining.remainingRatio * 100);
   const daysLabel = monthRemaining.daysLeft === 1 ? 'day' : 'days';
   const isMonthRemainingPulseEnabled =
@@ -428,12 +437,20 @@ export function HomeScreen({
             progress={monthRemaining.remainingRatio}
             style={{marginTop: theme.spacing[8]}}
           />
-          <AppText
-            color="onSurfaceVariant"
-            style={{marginTop: theme.spacing[8]}}
-            variant="bodySmall">
-            {monthRemaining.daysLeft} {daysLabel} left out of {monthRemaining.daysInMonth}
-          </AppText>
+          <View
+            style={[
+              styles.monthDetailsRow,
+              {
+                marginTop: theme.spacing[8],
+              },
+            ]}>
+            <AppText color="onSurfaceVariant" style={styles.monthDetailsLeft} variant="bodySmall">
+              {monthRemaining.daysLeft} {daysLabel} left out of {monthRemaining.daysInMonth}
+            </AppText>
+            <AppText color="onSurfaceVariant" style={styles.monthDetailsDate} variant="labelMedium">
+              {currentDateLabel}
+            </AppText>
+          </View>
         </AppCard>
 
         <AppCard style={styles.withdrawalHistoryCard}>
@@ -657,6 +674,18 @@ const styles = StyleSheet.create({
   },
   summaryValueRight: {
     textAlign: 'right',
+  },
+  monthDetailsDate: {
+    flexShrink: 0,
+    textAlign: 'right',
+  },
+  monthDetailsLeft: {
+    flex: 1,
+    minWidth: 0,
+  },
+  monthDetailsRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
   },
   brandingCredit: {
     fontStyle: 'italic',

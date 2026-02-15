@@ -58,6 +58,7 @@ Maintain and extend the app with consistency and minimal risk. Prioritize produc
     - In the withdraw dialog, keyboard `Done` only dismisses the keyboard; only `Confirm` performs the withdrawal.
   - First card: `This Month` and `Month Remaining` (percentage + progress bar + days left in month).
     - `Month Remaining` progress bar runs a smooth left-to-right gradient sweep while Home is focused and no popup/dialog is open (`pulseIntervalMs=2200`).
+    - Show the current local date right-aligned below the progress bar.
   - Withdrawal History card is vertically scrollable inside the card.
     - Rows are tappable and use subtle press animation.
     - Tapping a row opens a details dialog with amount/date and `Cancel` + `Delete` actions.
