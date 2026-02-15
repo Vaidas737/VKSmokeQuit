@@ -297,6 +297,60 @@ describe('HomeScreen', () => {
     expect(updatedAbsoluteTotalAmount).toBe(initialAbsoluteTotalAmount);
   });
 
+  it('does not save withdrawal on keyboard done, only on confirm', async () => {
+    const now = new Date();
+    const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    await AsyncStorage.multiSet([
+      [STORAGE_KEYS.counterStartDate, previousMonthStart.toISOString()],
+      [STORAGE_KEYS.counterDailyAmount, '10'],
+      [STORAGE_KEYS.counterWithdrawalHistory, '[]'],
+    ]);
+
+    const {UNSAFE_getByType, getByRole, getByTestId, getByText, queryByText} =
+      renderHomeScreen();
+
+    await waitFor(() => {
+      expect(
+        getByRole('button', {name: 'Withdraw from total amount'}),
+      ).toBeTruthy();
+      expect(getByTestId('home-total-amount-value')).toBeTruthy();
+    });
+
+    const initialOverallAmount = getAmountFromTextNode(
+      getByTestId('home-total-amount-value'),
+    );
+
+    pressTotalAmountButton(getByTestId);
+
+    await waitFor(() => {
+      expect(getByText('Confirm')).toBeTruthy();
+    });
+
+    const withdrawInput = UNSAFE_getByType(TextInput);
+    fireEvent.changeText(withdrawInput, '50');
+    fireEvent(withdrawInput, 'submitEditing', {
+      nativeEvent: {text: '50'},
+    });
+
+    await waitFor(() => {
+      expect(getByText(/You can withdraw only from past months/)).toBeTruthy();
+      expect(getByText('Confirm')).toBeTruthy();
+    });
+
+    expect(queryByText('Withdrawal successful: ₪50')).toBeNull();
+
+    pressButtonByLabel(getByText, 'Confirm');
+
+    await waitFor(() => {
+      expect(getByText('Withdrawal successful: ₪50')).toBeTruthy();
+    });
+
+    const updatedOverallAmount = getAmountFromTextNode(
+      getByTestId('home-total-amount-value'),
+    );
+    expect(updatedOverallAmount).toBe(initialOverallAmount - 50);
+  });
+
   it('opens withdrawal details when pressing a history row', async () => {
     const now = new Date();
     const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);

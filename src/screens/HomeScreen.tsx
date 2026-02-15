@@ -557,7 +557,7 @@ export function HomeScreen({
                   blurOnSubmit
                   keyboardType="numbers-and-punctuation"
                   onChangeText={setWithdrawAmountInput}
-                  onSubmitEditing={confirmWithdrawal}
+                  onSubmitEditing={Keyboard.dismiss}
                   placeholderTextColor={theme.colors.onSurfaceVariant}
                   returnKeyType="done"
                   selection={{

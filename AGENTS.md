@@ -55,6 +55,7 @@ Maintain and extend the app with consistency and minimal risk. Prioritize produc
 - Home screen layout:
   - Main screen content is static (no full-screen vertical scroll).
   - Top summary (outside cards): two larger totals in one row; left is tappable adjusted total (opens withdraw dialog), right is unlabeled absolute total (includes withdrawals).
+    - In the withdraw dialog, keyboard `Done` only dismisses the keyboard; only `Confirm` performs the withdrawal.
   - First card: `This Month` and `Month Remaining` (percentage + progress bar + days left in month).
     - `Month Remaining` progress bar runs a smooth left-to-right gradient sweep while Home is focused and no popup/dialog is open (`pulseIntervalMs=2200`).
   - Withdrawal History card is vertically scrollable inside the card.
