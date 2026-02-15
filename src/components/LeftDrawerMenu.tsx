@@ -24,12 +24,14 @@ const SWIPE_CLOSE_VELOCITY = 0.3;
 
 type LeftDrawerMenuProps = {
   onClose: () => void;
+  onOpenCounter: () => void;
   onOpenSettings: () => void;
   visible: boolean;
 };
 
 export function LeftDrawerMenu({
   onClose,
+  onOpenCounter,
   onOpenSettings,
   visible,
 }: LeftDrawerMenuProps) {
@@ -115,7 +117,7 @@ export function LeftDrawerMenu({
   }
 
   return (
-    <View pointerEvents="box-none" style={styles.overlay}>
+    <View pointerEvents={visible ? 'box-none' : 'none'} style={styles.overlay}>
       <Animated.View
         style={[
           styles.scrim,
@@ -157,6 +159,21 @@ export function LeftDrawerMenu({
               onOpenSettings();
             }}
             title="Settings"
+          />
+
+          <AppListRow
+            leading={
+              <MaterialIcons
+                color={theme.colors.onSurfaceVariant}
+                name="calculate"
+                size={theme.spacing[24]}
+              />
+            }
+            onPress={() => {
+              onClose();
+              onOpenCounter();
+            }}
+            title="Counter"
           />
         </SafeAreaView>
       </Animated.View>

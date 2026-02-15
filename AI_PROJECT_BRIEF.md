@@ -7,6 +7,7 @@ Maintain and extend an iOS-only React Native app using a strict, token-based Mat
 ## Application Purpose
 
 - Support a smoke-quit journey with a calm, focused, offline-first experience.
+- Surface a simple money counter for savings tracking on the Home screen.
 - Prioritize clarity and low-friction daily use over feature breadth.
 - Keep user trust by avoiding network access and preserving predictable behavior.
 
@@ -28,38 +29,44 @@ Maintain and extend an iOS-only React Native app using a strict, token-based Mat
 
 - Entry: `index.js`, `App.tsx`
 - Shared code in `src/`
-  - `src/screens`: `HomeScreen`, `SettingsScreen`, `AboutScreen`
+  - `src/screens`: `HomeScreen`, `CounterScreen`, `SettingsScreen`, `AboutScreen`
   - `src/navigation`: native-stack setup, route typing, custom top bar wiring
   - `src/components`: reusable `App*` components and shared layout/menu primitives
   - `src/design/tokens`: color/typography/spacing/radius/elevation tokens
   - `src/design/theme`: theme creation, navigation theme mapping, `ThemeProvider`, `useTheme`
   - `src/hooks`: `useThemePreference` for loading/persisting theme mode
-  - `src/utils`: AsyncStorage helpers for theme persistence
+  - `src/utils`: AsyncStorage helpers for theme and counter persistence/calculation
   - `src/constants`: route names and storage keys
   - `src/assets`: placeholder for static assets
 - Core user flow:
-  - `Home`: launch surface and drawer entry point
+  - `Home`: launch surface, savings totals, drawer entry point
+  - `Counter`: update daily amount and reset start date
   - `Settings`: theme preference management
   - `About`: app context/info screen
 
 ## Navigation and Menu UX
 
-- Uses React Navigation native stack (`Home`, `Settings`, `About`).
+- Uses React Navigation native stack (`Home`, `Settings`, `Counter`, `About`).
 - Navigation pattern: **stack header rules** via `AppTopBar`.
 - Home header has a left-side menu button.
 - Menu opens a custom left slide-in drawer overlay (`LeftDrawerMenu`) with a square edge and responsive width.
 - Drawer closes via outside tap or left swipe gesture.
 - Opening/closing uses matched slide animation with gentle full-screen dim/undim scrim animation.
-- Drawer currently contains one section: `Settings`.
+- Drawer contains `Settings` and `Counter`.
 - Drawer `Settings` row uses a leading Material icon (`settings`) and no subtitle/description.
+- Drawer `Counter` row uses a leading Material icon (`calculate`) and no subtitle/description.
 - Selecting drawer `Settings` navigates to `SettingsScreen`.
-- Home screen primary in-card CTA is `About`; there is no `Open Settings` button on Home.
-- Access to `Settings` is drawer-driven from the Home top bar menu.
+- Selecting drawer `Counter` navigates to `CounterScreen`.
+- Access to `Settings` and `Counter` is drawer-driven from the Home top bar menu.
 
 ## Home Screen Current UX
 
-- Hero card shows title.
-- Home screen includes an `About` button only.
+- Single card with savings data only:
+  - `Overall Total`
+  - `This Month`
+  - `Daily Rate`
+  - `Start Date`
+- Totals are calculated from persisted counter settings and local date/time.
 
 ## Theming and Persistence
 
@@ -67,6 +74,9 @@ Maintain and extend an iOS-only React Native app using a strict, token-based Mat
 - Theme mode options: `system`, `light`, `dark`.
 - Effective mode resolves from iOS Appearance when mode is `system`.
 - Theme preference persists via `@react-native-async-storage/async-storage`.
+- Counter state persists via `@react-native-async-storage/async-storage`:
+  - `counterStartDate`
+  - `counterDailyAmount`
 - Settings screen exposes explicit mode selection.
 
 ## Testing and Tooling

@@ -11,6 +11,7 @@ import {AppTopBar} from '@/components/AppTopBar';
 import {ROUTES} from '@/constants/routes';
 import {useTheme} from '@/design/theme/ThemeProvider';
 import {AboutScreen} from '@/screens/AboutScreen';
+import {CounterScreen} from '@/screens/CounterScreen';
 import {HomeScreen} from '@/screens/HomeScreen';
 import {SettingsScreen} from '@/screens/SettingsScreen';
 
@@ -31,6 +32,10 @@ function getTitleForRoute(routeName: keyof RootStackParamList): string {
 
   if (routeName === ROUTES.Settings) {
     return 'Settings';
+  }
+
+  if (routeName === ROUTES.Counter) {
+    return 'Counter';
   }
 
   return 'About';
@@ -80,6 +85,10 @@ export function AppNavigator() {
     sourceNavigation.current?.navigate(ROUTES.Settings);
   }, []);
 
+  const openCounter = useCallback(() => {
+    sourceNavigation.current?.navigate(ROUTES.Counter);
+  }, []);
+
   return (
     <DrawerMenuContext.Provider value={{openMenu}}>
       <View style={styles.root}>
@@ -91,11 +100,13 @@ export function AppNavigator() {
           })}>
           <Stack.Screen component={HomeScreen} name={ROUTES.Home} />
           <Stack.Screen component={SettingsScreen} name={ROUTES.Settings} />
+          <Stack.Screen component={CounterScreen} name={ROUTES.Counter} />
           <Stack.Screen component={AboutScreen} name={ROUTES.About} />
         </Stack.Navigator>
 
         <LeftDrawerMenu
           onClose={closeMenu}
+          onOpenCounter={openCounter}
           onOpenSettings={openSettings}
           visible={isMenuVisible}
         />
