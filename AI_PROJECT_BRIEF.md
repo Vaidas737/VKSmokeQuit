@@ -257,6 +257,7 @@ Maintain and extend an iOS-only React Native app using a strict, token-based Mat
   - Safe-area aware
   - Height = top inset + 64
   - Home uses menu icon, child screens use back icon
+  - Uses the same `background` surface as screen content with no bottom separator line
 
 ### `AppDialog`
 

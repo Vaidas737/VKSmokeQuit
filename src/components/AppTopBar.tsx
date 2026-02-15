@@ -69,8 +69,7 @@ export function AppTopBar({
       style={[
         styles.container,
         {
-          backgroundColor: theme.colors.surface,
-          borderBottomColor: theme.colors.outline,
+          backgroundColor: theme.colors.background,
           minHeight: BAR_HEIGHT + insets.top,
           paddingTop: insets.top,
         },
@@ -126,7 +125,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   container: {
-    borderBottomWidth: 1,
     width: '100%',
   },
   content: {
