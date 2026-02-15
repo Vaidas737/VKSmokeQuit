@@ -66,6 +66,11 @@ Maintain and extend the app with consistency and minimal risk. Prioritize produc
     - Deleting a row removes it from history and recalculates the top total amount.
     - Show a bottom gradient dim overlay while more history items are available below; hide it at list end.
   - Bottom-centered branding credit on Home only: `powered by willpower.` (inscription-style treatment).
+- Counter screen layout:
+  - Date Counter supports choosing a start date through a date picker dialog.
+  - Counter Amount uses a persisted daily amount input (`ILS/day`).
+  - A `Reset All to Default` action appears below the cards and requires confirmation.
+    - Confirm reset sets Date Counter to current local date, Counter Amount to `45`, and clears withdrawal history.
 - Counter values are based on persisted settings and local date/time.
 
 ## Theme and Persistence Rules
@@ -77,6 +82,7 @@ Maintain and extend the app with consistency and minimal risk. Prioritize produc
 - Counter keys:
   - `counterStartDate`
   - `counterDailyAmount`
+  - `counterWithdrawalHistory`
 
 ## Required Shared Components
 

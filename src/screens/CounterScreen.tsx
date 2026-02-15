@@ -22,7 +22,7 @@ import {
   DEFAULT_DAILY_AMOUNT,
   formatDateYmd,
   getStoredCounterSettings,
-  resetCounterStartDate,
+  resetCounterSettingsToDefault,
   saveCounterStartDate,
   saveCounterDailyAmount,
   startOfLocalDay,
@@ -44,6 +44,8 @@ export function CounterScreen() {
     startOfLocalDay(new Date()),
   );
   const [isStartDatePickerVisible, setStartDatePickerVisible] = useState(false);
+  const [isResetDefaultsDialogVisible, setResetDefaultsDialogVisible] =
+    useState(false);
   const [amountInputValue, setAmountInputValue] = useState<string>(
     String(DEFAULT_DAILY_AMOUNT),
   );
@@ -97,18 +99,6 @@ export function CounterScreen() {
     parsedAmount >= 0 &&
     Number.isInteger(parsedAmount);
 
-  const resetDateCounter = () => {
-    resetCounterStartDate()
-      .then(nextDate => {
-        setStartDate(nextDate);
-        setDraftStartDate(nextDate);
-        showSnackbar('Counter date reset to today', 'success');
-      })
-      .catch(() => {
-        showSnackbar('Unable to reset counter date', 'error');
-      });
-  };
-
   const openStartDatePicker = () => {
     setDraftStartDate(startDate);
     setStartDatePickerVisible(true);
@@ -155,6 +145,27 @@ export function CounterScreen() {
       });
   };
 
+  const closeResetDefaultsDialog = () => {
+    setResetDefaultsDialogVisible(false);
+  };
+
+  const confirmResetDefaults = () => {
+    resetCounterSettingsToDefault()
+      .then(defaultSettings => {
+        setStartDate(defaultSettings.startDate);
+        setDraftStartDate(defaultSettings.startDate);
+        setAmountInputValue(String(defaultSettings.dailyAmount));
+        setAmountError(undefined);
+        setStartDatePickerVisible(false);
+        closeResetDefaultsDialog();
+        showSnackbar('Counter settings reset to defaults', 'success');
+      })
+      .catch(() => {
+        closeResetDefaultsDialog();
+        showSnackbar('Unable to reset counter settings', 'error');
+      });
+  };
+
   return (
     <ScreenContainer>
       <TouchableWithoutFeedback accessible={false} onPress={Keyboard.dismiss}>
@@ -168,11 +179,6 @@ export function CounterScreen() {
               <View style={{marginTop: theme.spacing[4]}}>
                 <AppButton fullWidth onPress={openStartDatePicker} variant="primary">
                   Choose Start Date
-                </AppButton>
-              </View>
-              <View style={{marginTop: theme.spacing[4]}}>
-                <AppButton fullWidth onPress={resetDateCounter} variant="tertiary">
-                  Reset Date Counter
                 </AppButton>
               </View>
             </View>
@@ -242,6 +248,13 @@ export function CounterScreen() {
             </View>
 
           </AppCard>
+
+          <AppButton
+            fullWidth
+            onPress={() => setResetDefaultsDialogVisible(true)}
+            variant="tertiary">
+            Reset All to Default
+          </AppButton>
         </View>
       </TouchableWithoutFeedback>
 
@@ -282,6 +295,16 @@ export function CounterScreen() {
           value={draftStartDate}
         />
       </AppDialog>
+      <AppDialog
+        cancelLabel="Cancel"
+        confirmLabel="Reset"
+        message={`This resets Date Counter to today, Counter Amount to ${DEFAULT_DAILY_AMOUNT}, and clears withdrawal history.`}
+        onCancel={closeResetDefaultsDialog}
+        onConfirm={confirmResetDefaults}
+        onDismiss={closeResetDefaultsDialog}
+        title="Reset counter settings"
+        visible={isResetDefaultsDialogVisible}
+      />
     </ScreenContainer>
   );
 }

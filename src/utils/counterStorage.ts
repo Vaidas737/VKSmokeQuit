@@ -309,6 +309,19 @@ export async function resetCounterStartDate(): Promise<Date> {
   return saveCounterStartDate(new Date());
 }
 
+export async function resetCounterSettingsToDefault(): Promise<CounterSettings> {
+  const startDate = startOfLocalDay(new Date());
+  const dailyAmount = DEFAULT_DAILY_AMOUNT;
+
+  await Promise.all([
+    AsyncStorage.setItem(STORAGE_KEYS.counterStartDate, startDate.toISOString()),
+    AsyncStorage.setItem(STORAGE_KEYS.counterDailyAmount, String(dailyAmount)),
+    AsyncStorage.setItem(STORAGE_KEYS.counterWithdrawalHistory, JSON.stringify([])),
+  ]);
+
+  return {dailyAmount, startDate};
+}
+
 export async function getStoredCounterWithdrawalHistory(): Promise<
   CounterWithdrawalEntry[]
 > {

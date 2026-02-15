@@ -4,9 +4,12 @@ import {STORAGE_KEYS} from '@/constants/storage';
 import {
   calculateMonthRemainingProgress,
   calculateWithdrawalBalances,
+  DEFAULT_DAILY_AMOUNT,
   deleteCounterWithdrawal,
   type CounterWithdrawalEntry,
   getStoredCounterWithdrawalHistory,
+  resetCounterSettingsToDefault,
+  startOfLocalDay,
 } from '@/utils/counterStorage';
 
 describe('calculateMonthRemainingProgress', () => {
@@ -198,5 +201,46 @@ describe('deleteCounterWithdrawal', () => {
     const persisted = JSON.parse(persistedRaw ?? '[]') as CounterWithdrawalEntry[];
     expect(persisted).toHaveLength(1);
     expect(persisted[0].id).toBe('entry-2');
+  });
+});
+
+describe('resetCounterSettingsToDefault', () => {
+  beforeEach(async () => {
+    await AsyncStorage.clear();
+  });
+
+  afterEach(async () => {
+    await AsyncStorage.clear();
+  });
+
+  it('resets date and amount defaults and clears withdrawal history', async () => {
+    await Promise.all([
+      AsyncStorage.setItem(STORAGE_KEYS.counterStartDate, '2020-01-01T00:00:00.000Z'),
+      AsyncStorage.setItem(STORAGE_KEYS.counterDailyAmount, '99'),
+      AsyncStorage.setItem(
+        STORAGE_KEYS.counterWithdrawalHistory,
+        JSON.stringify([
+          {
+            amount: 20,
+            createdAtIso: '2026-01-10T10:00:00.000Z',
+            id: 'entry-1',
+          },
+        ]),
+      ),
+    ]);
+
+    const result = await resetCounterSettingsToDefault();
+    const expectedToday = startOfLocalDay(new Date());
+    const [storedDate, storedAmount, storedHistory] = await Promise.all([
+      AsyncStorage.getItem(STORAGE_KEYS.counterStartDate),
+      AsyncStorage.getItem(STORAGE_KEYS.counterDailyAmount),
+      AsyncStorage.getItem(STORAGE_KEYS.counterWithdrawalHistory),
+    ]);
+
+    expect(result.startDate.toISOString()).toBe(expectedToday.toISOString());
+    expect(result.dailyAmount).toBe(DEFAULT_DAILY_AMOUNT);
+    expect(storedDate).toBe(expectedToday.toISOString());
+    expect(storedAmount).toBe(String(DEFAULT_DAILY_AMOUNT));
+    expect(storedHistory).toBe('[]');
   });
 });
