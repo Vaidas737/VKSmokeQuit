@@ -4,6 +4,7 @@ import {
   AppState,
   Keyboard,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   TextInput,
@@ -11,7 +12,6 @@ import {
   View,
 } from 'react-native';
 
-import {AppButton} from '@/components/AppButton';
 import {AppCard} from '@/components/AppCard';
 import {AppDialog} from '@/components/AppDialog';
 import {AppListRow} from '@/components/AppListRow';
@@ -185,8 +185,17 @@ export function HomeScreen({isMenuVisible = false}: HomeScreenProps) {
       ),
     [balances.pastAccumulatedAvailable, withdrawAmountInput],
   );
+  const canOpenWithdrawDialog = balances.pastAccumulatedAvailable > 0;
   const isWithdrawalInputValid =
     withdrawAmountInput.trim().length > 0 && !withdrawalError;
+
+  const openWithdrawDialog = () => {
+    if (!canOpenWithdrawDialog) {
+      return;
+    }
+
+    setWithdrawDialogVisible(true);
+  };
 
   const confirmWithdrawal = () => {
     if (!isWithdrawalInputValid) {
@@ -216,9 +225,22 @@ export function HomeScreen({isMenuVisible = false}: HomeScreenProps) {
         <View style={[styles.content, {gap: theme.spacing[16]}]}>
           <View style={styles.summary}>
             <View style={styles.summaryRow}>
-              <AppText color="primary" style={styles.summaryValue} variant="displaySmall">
-                ₪{balances.adjustedOverall}
-              </AppText>
+              <Pressable
+                accessibilityLabel="Withdraw from total amount"
+                accessibilityRole="button"
+                accessibilityState={{disabled: !canOpenWithdrawDialog}}
+                disabled={!canOpenWithdrawDialog}
+                hitSlop={4}
+                onPress={openWithdrawDialog}
+                testID="home-total-amount-button"
+                style={({pressed}) => [
+                  styles.summaryValuePressable,
+                  pressed && canOpenWithdrawDialog ? styles.summaryValuePressablePressed : null,
+                ]}>
+                <AppText color="secondary" style={styles.summaryValue} variant="displaySmall">
+                  ₪{balances.adjustedOverall}
+                </AppText>
+              </Pressable>
             </View>
           </View>
 
@@ -246,13 +268,6 @@ export function HomeScreen({isMenuVisible = false}: HomeScreenProps) {
               {monthRemaining.daysLeft} {daysLabel} left out of {monthRemaining.daysInMonth}
             </AppText>
           </AppCard>
-
-          <AppButton
-            disabled={balances.pastAccumulatedAvailable <= 0}
-            onPress={() => setWithdrawDialogVisible(true)}
-            variant="secondary">
-            Withdraw
-          </AppButton>
 
           <AppCard>
             <AppText variant="titleMedium">Withdrawal History</AppText>
@@ -381,6 +396,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     width: '100%',
+  },
+  summaryValuePressable: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
+    minWidth: 44,
+  },
+  summaryValuePressablePressed: {
+    opacity: 0.9,
   },
   summaryValue: {
     textAlign: 'center',

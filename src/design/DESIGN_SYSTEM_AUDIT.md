@@ -72,7 +72,7 @@
 - Chosen pattern: **stack navigation with custom `AppTopBar` header**.
 - Header title strategy:
   - Home: "Smoke-Free Journey".
-  - Settings/About: route title.
+  - Child screens: route title.
 - Screen background: token `background` from theme.
 - DON’T use mixed tab/header paradigms.
 
@@ -118,7 +118,7 @@
 3. Create `ThemeProvider` + `useTheme()` as single source of truth.
 4. Build token-driven primitives (`AppText`, `AppButton`, `AppTextField`, `AppCard`, `AppTopBar`, `AppDialog`, `AppSnackbar`, `AppListRow`).
 5. Refactor shared layout/navigation (`ScreenContainer`, `LeftDrawerMenu`, `AppNavigator`) to consume theme + App components.
-6. Refactor main screens (`Home`, `Settings`, `About`) to remove hardcoded styles/colors and use App components only.
+6. Refactor main screens (`Home`, `Counter`, `Appearance`) to remove hardcoded styles/colors and use App components only.
 7. Remove legacy Paper/theme artifacts (`src/theme/*`, `PrimaryButton`).
 8. Update tests to mount screens under `ThemeProvider`.
 9. Update `AI_PROJECT_BRIEF.md` with strict design system rules, full tokens, specs, and non-negotiables.

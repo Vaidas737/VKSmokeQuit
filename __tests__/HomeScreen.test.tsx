@@ -72,6 +72,32 @@ const pressButtonByLabel = (
   fireEvent(pressableNode, 'onPress');
 };
 
+const getPressableNodeFromTextNode = (
+  textNode: {parent: {parent: {props: Record<string, unknown>} | null} | null; props: Record<string, unknown>},
+) => {
+  let currentNode: {parent: typeof textNode.parent | null; props: Record<string, unknown>} | null = textNode;
+
+  while (currentNode) {
+    if (typeof currentNode.props.onPress === 'function') {
+      return currentNode;
+    }
+
+    currentNode = currentNode.parent;
+  }
+
+  throw new Error('Unable to locate pressable node for text node');
+};
+
+const pressTotalAmountByText = (
+  getAllByText: (
+    text: RegExp,
+  ) => Array<{parent: {parent: {props: Record<string, unknown>} | null} | null; props: Record<string, unknown>}>,
+) => {
+  const totalAmountText = getAllByText(/^₪\d+$/)[0];
+  const pressableNode = getPressableNodeFromTextNode(totalAmountText);
+  fireEvent(pressableNode, 'onPress');
+};
+
 describe('HomeScreen', () => {
   beforeEach(async () => {
     await AsyncStorage.clear();
@@ -81,7 +107,7 @@ describe('HomeScreen', () => {
     await AsyncStorage.clear();
   });
 
-  it('keeps withdraw button disabled when only current month total exists', async () => {
+  it('keeps total amount action disabled when only current month total exists', async () => {
     const today = startOfLocalDay(new Date());
     await AsyncStorage.multiSet([
       [STORAGE_KEYS.counterStartDate, today.toISOString()],
@@ -89,18 +115,52 @@ describe('HomeScreen', () => {
       [STORAGE_KEYS.counterWithdrawalHistory, '[]'],
     ]);
 
-    const {getByRole, queryByText} = renderHomeScreen();
+    const {getAllByText, getByRole, queryByRole, queryByText} = renderHomeScreen();
 
     await waitFor(() => {
-      expect(getByRole('button', {name: 'Withdraw'})).toBeTruthy();
+      expect(
+        getByRole('button', {name: 'Withdraw from total amount'}),
+      ).toBeTruthy();
     });
 
-    const withdrawButton = getByRole('button', {name: 'Withdraw'});
-    expect(getButtonDisabledState(withdrawButton)).toBe(true);
+    const totalAmountButton = getByRole('button', {
+      name: 'Withdraw from total amount',
+    });
+    expect(getButtonDisabledState(totalAmountButton)).toBe(true);
+    expect(queryByRole('button', {name: 'Withdraw'})).toBeNull();
 
-    fireEvent.press(withdrawButton);
+    pressTotalAmountByText(getAllByText);
 
     expect(queryByText(/You can withdraw only from past months/)).toBeNull();
+  });
+
+  it('opens withdraw dialog when pressing the total amount and withdrawals are available', async () => {
+    const now = new Date();
+    const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    await AsyncStorage.multiSet([
+      [STORAGE_KEYS.counterStartDate, previousMonthStart.toISOString()],
+      [STORAGE_KEYS.counterDailyAmount, '10'],
+      [STORAGE_KEYS.counterWithdrawalHistory, '[]'],
+    ]);
+
+    const {getAllByText, getByRole, getByText} = renderHomeScreen();
+
+    await waitFor(() => {
+      expect(
+        getByRole('button', {name: 'Withdraw from total amount'}),
+      ).toBeTruthy();
+    });
+
+    const totalAmountButton = getByRole('button', {
+      name: 'Withdraw from total amount',
+    });
+    expect(getButtonDisabledState(totalAmountButton)).toBe(false);
+
+    pressTotalAmountByText(getAllByText);
+
+    await waitFor(() => {
+      expect(getByText(/You can withdraw only from past months/)).toBeTruthy();
+    });
   });
 
   it('shows error and keeps confirm disabled for empty or illegal amount', async () => {
@@ -119,16 +179,20 @@ describe('HomeScreen', () => {
       [STORAGE_KEYS.counterWithdrawalHistory, '[]'],
     ]);
 
-    const {UNSAFE_getByType, getByRole, getByText} = renderHomeScreen();
+    const {UNSAFE_getByType, getByRole, getAllByText, getByText} = renderHomeScreen();
 
     await waitFor(() => {
-      expect(getByRole('button', {name: 'Withdraw'})).toBeTruthy();
+      expect(
+        getByRole('button', {name: 'Withdraw from total amount'}),
+      ).toBeTruthy();
     });
 
-    const withdrawButton = getByRole('button', {name: 'Withdraw'});
-    expect(getButtonDisabledState(withdrawButton)).toBe(false);
+    const totalAmountButton = getByRole('button', {
+      name: 'Withdraw from total amount',
+    });
+    expect(getButtonDisabledState(totalAmountButton)).toBe(false);
 
-    pressButtonByLabel(getByText, 'Withdraw');
+    pressTotalAmountByText(getAllByText);
 
     await waitFor(() => {
       expect(getByText(/You can withdraw only from past months/)).toBeTruthy();
@@ -159,13 +223,15 @@ describe('HomeScreen', () => {
     const {UNSAFE_getByType, getAllByText, getByRole, getByText} = renderHomeScreen();
 
     await waitFor(() => {
-      expect(getByRole('button', {name: 'Withdraw'})).toBeTruthy();
+      expect(
+        getByRole('button', {name: 'Withdraw from total amount'}),
+      ).toBeTruthy();
       expect(getAllByText(/^₪\d+$/)[0]).toBeTruthy();
     });
 
     const initialOverallAmount = getAmountFromTextNode(getAllByText(/^₪\d+$/)[0]);
 
-    pressButtonByLabel(getByText, 'Withdraw');
+    pressTotalAmountByText(getAllByText);
 
     await waitFor(() => {
       expect(getByText('Confirm')).toBeTruthy();
@@ -193,14 +259,16 @@ describe('HomeScreen', () => {
       [STORAGE_KEYS.counterWithdrawalHistory, '[]'],
     ]);
 
-    const {UNSAFE_getByType, getByRole, getByText} = renderHomeScreen();
+    const {UNSAFE_getByType, getByRole, getAllByText, getByText} = renderHomeScreen();
 
     await waitFor(() => {
-      expect(getByRole('button', {name: 'Withdraw'})).toBeTruthy();
+      expect(
+        getByRole('button', {name: 'Withdraw from total amount'}),
+      ).toBeTruthy();
       expect(UNSAFE_getByType(AppProgressBar).props.pulseEnabled).toBe(true);
     });
 
-    pressButtonByLabel(getByText, 'Withdraw');
+    pressTotalAmountByText(getAllByText);
 
     await waitFor(() => {
       expect(getByText(/You can withdraw only from past months/)).toBeTruthy();
@@ -223,13 +291,15 @@ describe('HomeScreen', () => {
       [STORAGE_KEYS.counterWithdrawalHistory, '[]'],
     ]);
 
-    const {getByRole, getByText, queryByText, rerender} = renderHomeScreen();
+    const {getAllByText, getByRole, getByText, queryByText, rerender} = renderHomeScreen();
 
     await waitFor(() => {
-      expect(getByRole('button', {name: 'Withdraw'})).toBeTruthy();
+      expect(
+        getByRole('button', {name: 'Withdraw from total amount'}),
+      ).toBeTruthy();
     });
 
-    pressButtonByLabel(getByText, 'Withdraw');
+    pressTotalAmountByText(getAllByText);
 
     await waitFor(() => {
       expect(getByText(/You can withdraw only from past months/)).toBeTruthy();

@@ -10,7 +10,6 @@ import {LeftDrawerMenu} from '@/components/LeftDrawerMenu';
 import {AppTopBar} from '@/components/AppTopBar';
 import {ROUTES} from '@/constants/routes';
 import {useTheme} from '@/design/theme/ThemeProvider';
-import {AboutScreen} from '@/screens/AboutScreen';
 import {AppearanceScreen} from '@/screens/AppearanceScreen';
 import {CounterScreen} from '@/screens/CounterScreen';
 import {HomeScreen} from '@/screens/HomeScreen';
@@ -34,11 +33,7 @@ function getTitleForRoute(routeName: keyof RootStackParamList): string {
     return 'Appearance';
   }
 
-  if (routeName === ROUTES.Counter) {
-    return 'Counter';
-  }
-
-  return 'About';
+  return 'Counter';
 }
 
 function TopBarHeader({back, navigation, route}: NativeStackHeaderProps) {
@@ -103,7 +98,6 @@ export function AppNavigator() {
           </Stack.Screen>
           <Stack.Screen component={AppearanceScreen} name={ROUTES.Appearance} />
           <Stack.Screen component={CounterScreen} name={ROUTES.Counter} />
-          <Stack.Screen component={AboutScreen} name={ROUTES.About} />
         </Stack.Navigator>
 
         <LeftDrawerMenu

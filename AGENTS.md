@@ -23,7 +23,7 @@ Maintain and extend the app with consistency and minimal risk. Prioritize produc
 
 - Entry points: `index.js`, `App.tsx`.
 - Main code under `src/`.
-- Screens: `HomeScreen`, `CounterScreen`, `AppearanceScreen`, `AboutScreen`.
+- Screens: `HomeScreen`, `CounterScreen`, `AppearanceScreen`.
 - Navigation: typed native stack + custom top bar.
 - Shared UI: `App*` components in `src/components`.
 - Theme and tokens are the single design source of truth.
@@ -31,7 +31,7 @@ Maintain and extend the app with consistency and minimal risk. Prioritize produc
 
 ## Navigation Rules
 
-- Stack routes: `Home`, `Appearance`, `Counter`, `About`.
+- Stack routes: `Home`, `Appearance`, `Counter`.
 - Header implementation must use `AppTopBar`.
 - Home header uses leading menu button.
 - On Home, if the withdraw dialog is open, pressing the menu button closes the dialog.
@@ -47,7 +47,7 @@ Maintain and extend the app with consistency and minimal risk. Prioritize produc
 ## Current UX Expectations
 
 - Home screen layout:
-  - Top summary (outside cards): centered larger total value (no label).
+  - Top summary (outside cards): centered larger total value (no label), tappable to open the withdraw dialog.
   - First card: `This Month` and `Month Remaining` (percentage + progress bar + days left in month).
     - `Month Remaining` progress bar runs a smooth left-to-right gradient sweep while Home is focused and no popup/dialog is open (`pulseIntervalMs=2200`).
 - Counter values are based on persisted settings and local date/time.

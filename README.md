@@ -51,7 +51,7 @@ npm run format:write
 
 ## App Features
 
-- React Navigation native stack with 3 screens: Home, Settings, About
+- React Navigation native stack with 3 screens: Home, Counter, Appearance
 - React Native Paper UI with light/dark themes
 - Theme preference saved locally via AsyncStorage
 - Shared reusable components in `src/components`
