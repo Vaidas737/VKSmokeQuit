@@ -7,6 +7,7 @@ import {
   View,
 } from 'react-native';
 
+import {AppOverlayPortal} from '@/components/overlay/AppOverlayPortal';
 import {AppButton} from '@/components/AppButton';
 import {AppCard} from '@/components/AppCard';
 import {AppText} from '@/components/AppText';
@@ -27,8 +28,8 @@ type AppDialogProps = {
   visible: boolean;
 };
 
-const OPEN_DURATION_MS = 240;
-const CLOSE_DURATION_MS = 190;
+const OPEN_DURATION_MS = 300;
+const CLOSE_DURATION_MS = 240;
 
 export function AppDialog({
   cancelLabel = 'Cancel',
@@ -89,54 +90,56 @@ export function AppDialog({
     : 0;
 
   return (
-    <View
-      pointerEvents="box-none"
-      style={styles.root}>
-      <Animated.View
-        style={[
-          styles.overlay,
-          {
-            backgroundColor: withOpacity(theme.colors.onBackground, theme.state.scrimOpacity),
-            opacity: animationProgress,
-          },
-        ]}>
-        <Pressable onPress={onDismiss} style={StyleSheet.absoluteFill} />
+    <AppOverlayPortal>
+      <View
+        pointerEvents="box-none"
+        style={styles.root}>
         <Animated.View
           style={[
-            styles.dialogCardContainer,
+            styles.overlay,
             {
-              opacity: dialogOpacity,
-              transform: [{translateY: dialogTranslateY}],
+              backgroundColor: withOpacity(theme.colors.onBackground, theme.state.scrimOpacity),
+              opacity: animationProgress,
             },
           ]}>
-          <AppCard style={styles.dialogCard}>
-            <AppText variant="headlineSmall">{title}</AppText>
-            {message ? (
-              <AppText color="onSurfaceVariant" style={styles.message} variant="bodyMedium">
-                {message}
-              </AppText>
-            ) : null}
-            {children ? <View style={styles.content}>{children}</View> : null}
+          <Pressable onPress={onDismiss} style={StyleSheet.absoluteFill} />
+          <Animated.View
+            style={[
+              styles.dialogCardContainer,
+              {
+                opacity: dialogOpacity,
+                transform: [{translateY: dialogTranslateY}],
+              },
+            ]}>
+            <AppCard style={styles.dialogCard}>
+              <AppText variant="headlineSmall">{title}</AppText>
+              {message ? (
+                <AppText color="onSurfaceVariant" style={styles.message} variant="bodyMedium">
+                  {message}
+                </AppText>
+              ) : null}
+              {children ? <View style={styles.content}>{children}</View> : null}
 
-            <View style={styles.actions}>
-              <AppButton
-                onPress={onCancel ?? onDismiss}
-                variant="tertiary"
-                fullWidth={false}>
-                {cancelLabel}
-              </AppButton>
-              <AppButton
-                disabled={confirmDisabled}
-                onPress={onConfirm ?? onDismiss}
-                variant="primary"
-                fullWidth={false}>
-                {confirmLabel}
-              </AppButton>
-            </View>
-          </AppCard>
+              <View style={styles.actions}>
+                <AppButton
+                  onPress={onCancel ?? onDismiss}
+                  variant="tertiary"
+                  fullWidth={false}>
+                  {cancelLabel}
+                </AppButton>
+                <AppButton
+                  disabled={confirmDisabled}
+                  onPress={onConfirm ?? onDismiss}
+                  variant="primary"
+                  fullWidth={false}>
+                  {confirmLabel}
+                </AppButton>
+              </View>
+            </AppCard>
+          </Animated.View>
         </Animated.View>
-      </Animated.View>
-    </View>
+      </View>
+    </AppOverlayPortal>
   );
 }
 

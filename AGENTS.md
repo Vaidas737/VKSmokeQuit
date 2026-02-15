@@ -26,6 +26,7 @@ Maintain and extend the app with consistency and minimal risk. Prioritize produc
 - Screens: `HomeScreen`, `CounterScreen`, `AppearanceScreen`, `SplashScreen`.
 - Navigation: typed native stack + custom top bar.
 - Shared UI: `App*` components in `src/components`.
+- App-wide overlay layering lives in `src/components/overlay` (`AppOverlayProvider`, `AppOverlayPortal`).
 - Theme and tokens are the single design source of truth.
 - Business logic belongs in hooks/utils, not screen components.
 
@@ -53,7 +54,7 @@ Maintain and extend the app with consistency and minimal risk. Prioritize produc
   - While splash is visible, preload Home data from storage and precompute amount-related values so Home appears immediately populated.
 - Home screen layout:
   - Main screen content is static (no full-screen vertical scroll).
-  - Top summary (outside cards): centered larger total value (no label), tappable to open the withdraw dialog.
+  - Top summary (outside cards): two larger totals in one row; left is tappable adjusted total (opens withdraw dialog), right is unlabeled absolute total (includes withdrawals).
   - First card: `This Month` and `Month Remaining` (percentage + progress bar + days left in month).
     - `Month Remaining` progress bar runs a smooth left-to-right gradient sweep while Home is focused and no popup/dialog is open (`pulseIntervalMs=2200`).
   - Withdrawal History card is vertically scrollable inside the card.
@@ -136,8 +137,8 @@ Rules:
 - `AppTextField`: focus uses `primary`; error uses `error`; disabled uses state opacity tokens.
 - `AppCard`: tokenized surface/outline/radius/elevation; interactive states when pressable.
 - `AppTopBar`: safe-area aware, height `top inset + 64`, no bottom separator line.
-- `AppDialog`: tokenized scrim + card/buttons, rendered as in-tree absolute overlay (not `Modal`); opens with fade + fly-up and closes with fade-out only.
-- `AppSnackbar`: bottom safe-area placement, default auto-dismiss `3000ms`, tokenized style, supports `tone` (`success`/`info`/`error`) and event-based replay via `eventId`.
+- `AppDialog`: tokenized scrim + card/buttons, rendered through app-wide overlay base layer via `AppOverlayPortal` (not `Modal`); opens with fade + fly-up and closes with fade-out only.
+- `AppSnackbar`: bottom safe-area placement, default auto-dismiss `3000ms`, tokenized style, supports `tone` (`success`/`info`/`error`) and event-based replay via `eventId`; rendered through app-wide snackbar overlay layer via `AppOverlayPortal`.
 - Snackbar layering/timing invariant: opening dialogs/popups must not reset snackbar animation/timer; snackbar remains visually on top and undimmed.
 - `AppListRow`: min height `56`, semantic typography (`titleMedium`, `bodySmall`).
   - Optional press animation for tappable rows: subtle scale+fade on press in/out.

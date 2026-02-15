@@ -374,23 +374,40 @@ export function HomeScreen({
           },
         ]}>
         <View style={styles.summary}>
-          <View style={styles.summaryRow}>
-            <Pressable
-              accessibilityLabel="Withdraw from total amount"
-              accessibilityRole="button"
-              accessibilityState={{disabled: !canOpenWithdrawDialog}}
-              disabled={!canOpenWithdrawDialog}
-              hitSlop={4}
-              onPress={openWithdrawDialog}
-              testID="home-total-amount-button"
-              style={({pressed}) => [
-                styles.summaryValuePressable,
-                pressed && canOpenWithdrawDialog ? styles.summaryValuePressablePressed : null,
-              ]}>
-              <AppText color="secondary" style={styles.summaryValue} variant="displaySmall">
-                ₪{balances.adjustedOverall}
+          <View style={[styles.summaryRow, {columnGap: theme.spacing[12]}]}>
+            <View style={styles.summaryAmountColumn}>
+              <Pressable
+                accessibilityLabel="Withdraw from total amount"
+                accessibilityRole="button"
+                accessibilityState={{disabled: !canOpenWithdrawDialog}}
+                disabled={!canOpenWithdrawDialog}
+                hitSlop={4}
+                onPress={openWithdrawDialog}
+                testID="home-total-amount-button"
+                style={({pressed}) => [
+                  styles.summaryValuePressable,
+                  pressed && canOpenWithdrawDialog ? styles.summaryValuePressablePressed : null,
+                ]}>
+                <AppText
+                  color="secondary"
+                  style={[styles.summaryValue, styles.summaryValueLeft]}
+                  testID="home-total-amount-value"
+                  variant="displaySmall">
+                  ₪{balances.adjustedOverall}
+                </AppText>
+              </Pressable>
+            </View>
+
+            <View style={[styles.summaryAmountColumn, styles.summaryAmountColumnRight]}>
+              <AppText
+                color="primary"
+                numberOfLines={1}
+                style={[styles.summaryValue, styles.summaryValueRight]}
+                testID="home-absolute-total-value"
+                variant="displaySmall">
+                ₪{balances.generatedOverall}
               </AppText>
-            </Pressable>
+            </View>
           </View>
         </View>
 
@@ -612,20 +629,34 @@ const styles = StyleSheet.create({
   summaryRow: {
     alignItems: 'center',
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     width: '100%',
   },
+  summaryAmountColumn: {
+    flex: 1,
+    minWidth: 0,
+  },
+  summaryAmountColumnRight: {
+    alignItems: 'flex-end',
+  },
   summaryValuePressable: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'center',
     minHeight: 44,
     minWidth: 44,
+    width: '100%',
   },
   summaryValuePressablePressed: {
     opacity: 0.9,
   },
   summaryValue: {
-    textAlign: 'center',
+    flexShrink: 1,
+  },
+  summaryValueLeft: {
+    textAlign: 'left',
+  },
+  summaryValueRight: {
+    textAlign: 'right',
   },
   brandingCredit: {
     fontStyle: 'italic',

@@ -7,6 +7,7 @@ import {
   useState,
 } from 'react';
 import {Appearance} from 'react-native';
+import {AppOverlayProvider} from '@/components/overlay/AppOverlayProvider';
 
 import {useThemePreference} from '@/hooks/useThemePreference';
 import {
@@ -69,7 +70,11 @@ export function ThemeProvider({children}: PropsWithChildren) {
     [isReady, resolvedMode, setThemeMode, theme, themeMode, toggleTheme],
   );
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={value}>
+      <AppOverlayProvider>{children}</AppOverlayProvider>
+    </ThemeContext.Provider>
+  );
 }
 
 export function useTheme(): ThemeContextValue {

@@ -103,12 +103,12 @@ const getPressableNodeFromTextNode = (
   throw new Error('Unable to locate pressable node for text node');
 };
 
-const pressTotalAmountByText = (
-  getAllByText: (
-    text: RegExp,
-  ) => Array<{parent: {parent: {props: Record<string, unknown>} | null} | null; props: Record<string, unknown>}>,
+const pressTotalAmountButton = (
+  getByTestId: (
+    testId: string,
+  ) => {parent: {parent: {props: Record<string, unknown>} | null} | null; props: Record<string, unknown>},
 ) => {
-  const totalAmountText = getAllByText(/^₪\d+$/)[0];
+  const totalAmountText = getByTestId('home-total-amount-value');
   const pressableNode = getPressableNodeFromTextNode(totalAmountText);
   fireEvent(pressableNode, 'onPress');
 };
@@ -150,7 +150,7 @@ describe('HomeScreen', () => {
       [STORAGE_KEYS.counterWithdrawalHistory, '[]'],
     ]);
 
-    const {getAllByText, getByRole, queryByRole, queryByText} = renderHomeScreen();
+    const {getByRole, getByTestId, queryByRole, queryByText} = renderHomeScreen();
 
     await waitFor(() => {
       expect(
@@ -164,7 +164,7 @@ describe('HomeScreen', () => {
     expect(getButtonDisabledState(totalAmountButton)).toBe(true);
     expect(queryByRole('button', {name: 'Withdraw'})).toBeNull();
 
-    pressTotalAmountByText(getAllByText);
+    pressTotalAmountButton(getByTestId);
 
     expect(queryByText(/You can withdraw only from past months/)).toBeNull();
   });
@@ -178,7 +178,7 @@ describe('HomeScreen', () => {
       [STORAGE_KEYS.counterWithdrawalHistory, '[]'],
     ]);
 
-    const {getAllByText, getByRole, getByText} = renderHomeScreen();
+    const {getByRole, getByTestId, getByText} = renderHomeScreen();
 
     await waitFor(() => {
       expect(
@@ -191,7 +191,7 @@ describe('HomeScreen', () => {
     });
     expect(getButtonDisabledState(totalAmountButton)).toBe(false);
 
-    pressTotalAmountByText(getAllByText);
+    pressTotalAmountButton(getByTestId);
 
     await waitFor(() => {
       expect(getByText(/You can withdraw only from past months/)).toBeTruthy();
@@ -214,7 +214,7 @@ describe('HomeScreen', () => {
       [STORAGE_KEYS.counterWithdrawalHistory, '[]'],
     ]);
 
-    const {UNSAFE_getByType, getByRole, getAllByText, getByText} = renderHomeScreen();
+    const {UNSAFE_getByType, getByRole, getByTestId, getByText} = renderHomeScreen();
 
     await waitFor(() => {
       expect(
@@ -227,7 +227,7 @@ describe('HomeScreen', () => {
     });
     expect(getButtonDisabledState(totalAmountButton)).toBe(false);
 
-    pressTotalAmountByText(getAllByText);
+    pressTotalAmountButton(getByTestId);
 
     await waitFor(() => {
       expect(getByText(/You can withdraw only from past months/)).toBeTruthy();
@@ -255,18 +255,24 @@ describe('HomeScreen', () => {
       [STORAGE_KEYS.counterWithdrawalHistory, '[]'],
     ]);
 
-    const {UNSAFE_getByType, getAllByText, getByRole, getByText} = renderHomeScreen();
+    const {UNSAFE_getByType, getByRole, getByTestId, getByText} = renderHomeScreen();
 
     await waitFor(() => {
       expect(
         getByRole('button', {name: 'Withdraw from total amount'}),
       ).toBeTruthy();
-      expect(getAllByText(/^₪\d+$/)[0]).toBeTruthy();
+      expect(getByTestId('home-total-amount-value')).toBeTruthy();
+      expect(getByTestId('home-absolute-total-value')).toBeTruthy();
     });
 
-    const initialOverallAmount = getAmountFromTextNode(getAllByText(/^₪\d+$/)[0]);
+    const initialOverallAmount = getAmountFromTextNode(
+      getByTestId('home-total-amount-value'),
+    );
+    const initialAbsoluteTotalAmount = getAmountFromTextNode(
+      getByTestId('home-absolute-total-value'),
+    );
 
-    pressTotalAmountByText(getAllByText);
+    pressTotalAmountButton(getByTestId);
 
     await waitFor(() => {
       expect(getByText('Confirm')).toBeTruthy();
@@ -281,8 +287,14 @@ describe('HomeScreen', () => {
       expect(getByText('₪50')).toBeTruthy();
     });
 
-    const updatedOverallAmount = getAmountFromTextNode(getAllByText(/^₪\d+$/)[0]);
+    const updatedOverallAmount = getAmountFromTextNode(
+      getByTestId('home-total-amount-value'),
+    );
+    const updatedAbsoluteTotalAmount = getAmountFromTextNode(
+      getByTestId('home-absolute-total-value'),
+    );
     expect(updatedOverallAmount).toBe(initialOverallAmount - 50);
+    expect(updatedAbsoluteTotalAmount).toBe(initialAbsoluteTotalAmount);
   });
 
   it('opens withdrawal details when pressing a history row', async () => {
@@ -382,14 +394,16 @@ describe('HomeScreen', () => {
       [STORAGE_KEYS.counterWithdrawalHistory, JSON.stringify(historyEntries)],
     ]);
 
-    const {getAllByText, getByText, queryByText} = renderHomeScreen();
+    const {getByTestId, getByText, queryByText} = renderHomeScreen();
 
     await waitFor(() => {
-      expect(getAllByText(/^₪\d+$/)[0]).toBeTruthy();
+      expect(getByTestId('home-total-amount-value')).toBeTruthy();
       expect(getByText(deletedDateLabel)).toBeTruthy();
     });
 
-    const initialOverallAmount = getAmountFromTextNode(getAllByText(/^₪\d+$/)[0]);
+    const initialOverallAmount = getAmountFromTextNode(
+      getByTestId('home-total-amount-value'),
+    );
 
     pressWithdrawalHistoryRowByDate(getByText, historyEntries[0].createdAtIso);
 
@@ -403,7 +417,9 @@ describe('HomeScreen', () => {
       expect(queryByText(deletedDateLabel)).toBeNull();
     });
 
-    const updatedOverallAmount = getAmountFromTextNode(getAllByText(/^₪\d+$/)[0]);
+    const updatedOverallAmount = getAmountFromTextNode(
+      getByTestId('home-total-amount-value'),
+    );
     expect(updatedOverallAmount).toBe(initialOverallAmount + historyEntries[0].amount);
   });
 
@@ -416,7 +432,7 @@ describe('HomeScreen', () => {
       [STORAGE_KEYS.counterWithdrawalHistory, '[]'],
     ]);
 
-    const {UNSAFE_getByType, getByRole, getAllByText, getByText} = renderHomeScreen();
+    const {UNSAFE_getByType, getByRole, getByTestId, getByText} = renderHomeScreen();
 
     await waitFor(() => {
       expect(
@@ -425,7 +441,7 @@ describe('HomeScreen', () => {
       expect(UNSAFE_getByType(AppProgressBar).props.pulseEnabled).toBe(true);
     });
 
-    pressTotalAmountByText(getAllByText);
+    pressTotalAmountButton(getByTestId);
 
     await waitFor(() => {
       expect(getByText(/You can withdraw only from past months/)).toBeTruthy();
@@ -485,7 +501,8 @@ describe('HomeScreen', () => {
       [STORAGE_KEYS.counterWithdrawalHistory, '[]'],
     ]);
 
-    const {getAllByText, getByRole, getByText, queryByText, rerender} = renderHomeScreen();
+    const {getByRole, getByTestId, getByText, queryByText, rerender} =
+      renderHomeScreen();
 
     await waitFor(() => {
       expect(
@@ -493,7 +510,7 @@ describe('HomeScreen', () => {
       ).toBeTruthy();
     });
 
-    pressTotalAmountByText(getAllByText);
+    pressTotalAmountButton(getByTestId);
 
     await waitFor(() => {
       expect(getByText(/You can withdraw only from past months/)).toBeTruthy();

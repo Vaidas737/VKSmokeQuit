@@ -9,6 +9,7 @@ import {
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
+import {AppOverlayPortal} from '@/components/overlay/AppOverlayPortal';
 import {AppText} from '@/components/AppText';
 import {withOpacity} from '@/design/theme';
 import {useTheme} from '@/design/theme/ThemeProvider';
@@ -188,89 +189,91 @@ export function AppSnackbar({
   };
 
   return (
-    <Animated.View
-      pointerEvents="box-none"
-      style={[
-        styles.wrapper,
-        {
-          bottom: insets.bottom + 16,
-          opacity,
-          transform: [{translateY}],
-        },
-      ]}>
-      <View
+    <AppOverlayPortal layer="snackbar">
+      <Animated.View
+        pointerEvents="box-none"
         style={[
-          styles.container,
-          styles.minHeight,
+          styles.wrapper,
           {
-            backgroundColor: theme.colors.surfaceVariant,
-            borderColor: theme.colors.outline,
-            borderRadius: theme.radius.md,
-            paddingHorizontal: theme.spacing[16],
-            paddingVertical: theme.spacing[12],
+            bottom: insets.bottom + 16,
+            opacity,
+            transform: [{translateY}],
           },
-          theme.elevation.level3,
         ]}>
-        <View style={[styles.leading, {marginRight: theme.spacing[12]}]}>
-          {tone === 'success' ? (
-            <Animated.View
-              pointerEvents="none"
+        <View
+          style={[
+            styles.container,
+            styles.minHeight,
+            {
+              backgroundColor: theme.colors.surfaceVariant,
+              borderColor: theme.colors.outline,
+              borderRadius: theme.radius.md,
+              paddingHorizontal: theme.spacing[16],
+              paddingVertical: theme.spacing[12],
+            },
+            theme.elevation.level3,
+          ]}>
+          <View style={[styles.leading, {marginRight: theme.spacing[12]}]}>
+            {tone === 'success' ? (
+              <Animated.View
+                pointerEvents="none"
+                style={[
+                  styles.successRing,
+                  {
+                    borderColor: theme.colors.primary,
+                    borderRadius: theme.radius.md,
+                    opacity: successRingOpacity,
+                    transform: [{scale: successRingScale}],
+                  },
+                ]}
+              />
+            ) : null}
+            <View
               style={[
-                styles.successRing,
+                styles.iconBadge,
                 {
-                  borderColor: theme.colors.primary,
-                  borderRadius: theme.radius.md,
-                  opacity: successRingOpacity,
-                  transform: [{scale: successRingScale}],
+                  backgroundColor: toneVisual.badgeColor,
+                  borderRadius: theme.radius.sm,
+                  height: theme.spacing[24],
+                  width: theme.spacing[24],
                 },
-              ]}
-            />
-          ) : null}
-          <View
-            style={[
-              styles.iconBadge,
-              {
-                backgroundColor: toneVisual.badgeColor,
-                borderRadius: theme.radius.sm,
-                height: theme.spacing[24],
-                width: theme.spacing[24],
-              },
-            ]}>
-            <MaterialIcons
-              color={toneVisual.iconColor}
-              name={toneVisual.iconName}
-              size={theme.spacing[16]}
-            />
+              ]}>
+              <MaterialIcons
+                color={toneVisual.iconColor}
+                name={toneVisual.iconName}
+                size={theme.spacing[16]}
+              />
+            </View>
           </View>
+          <AppText
+            style={[styles.message, {color: toneVisual.messageColor}]}
+            variant="bodyMedium">
+            {message}
+          </AppText>
+          {actionLabel ? (
+            <Pressable
+              accessibilityRole="button"
+              hitSlop={6}
+              onBlur={() => setActionFocused(false)}
+              onFocus={() => setActionFocused(true)}
+              onPress={handleAction}
+              style={({pressed}) => [
+                styles.action,
+                {
+                  borderColor: isActionFocused ? theme.colors.primary : 'transparent',
+                  borderRadius: theme.radius.sm,
+                  borderWidth: isActionFocused ? 1 : 0,
+                },
+                pressed ? styles.pressed : null,
+              ]}>
+              <AppText color="tertiary" variant="labelLarge">
+                {actionLabel}
+              </AppText>
+            </Pressable>
+          ) : null}
         </View>
-        <AppText
-          style={[styles.message, {color: toneVisual.messageColor}]}
-          variant="bodyMedium">
-          {message}
-        </AppText>
-        {actionLabel ? (
-          <Pressable
-            accessibilityRole="button"
-            hitSlop={6}
-            onBlur={() => setActionFocused(false)}
-            onFocus={() => setActionFocused(true)}
-            onPress={handleAction}
-            style={({pressed}) => [
-              styles.action,
-              {
-                borderColor: isActionFocused ? theme.colors.primary : 'transparent',
-                borderRadius: theme.radius.sm,
-                borderWidth: isActionFocused ? 1 : 0,
-              },
-              pressed ? styles.pressed : null,
-            ]}>
-            <AppText color="tertiary" variant="labelLarge">
-              {actionLabel}
-            </AppText>
-          </Pressable>
-        ) : null}
-      </View>
-    </Animated.View>
+      </Animated.View>
+    </AppOverlayPortal>
   );
 }
 
