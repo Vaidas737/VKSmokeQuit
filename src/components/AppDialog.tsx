@@ -1,5 +1,5 @@
 import type {ReactNode} from 'react';
-import {Modal, Pressable, StyleSheet, View} from 'react-native';
+import {Pressable, StyleSheet, View} from 'react-native';
 
 import {AppButton} from '@/components/AppButton';
 import {AppCard} from '@/components/AppCard';
@@ -32,13 +32,14 @@ export function AppDialog({
 }: AppDialogProps) {
   const {theme} = useTheme();
 
+  if (!visible) {
+    return null;
+  }
+
   return (
-    <Modal
-      animationType="fade"
-      onRequestClose={onDismiss}
-      statusBarTranslucent
-      transparent
-      visible={visible}>
+    <View
+      pointerEvents="box-none"
+      style={styles.root}>
       <View
         style={[
           styles.overlay,
@@ -73,7 +74,7 @@ export function AppDialog({
           </View>
         </AppCard>
       </View>
-    </Modal>
+    </View>
   );
 }
 
@@ -99,5 +100,9 @@ const styles = StyleSheet.create({
   },
   content: {
     marginTop: 12,
+  },
+  root: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 900,
   },
 });

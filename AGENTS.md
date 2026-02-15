@@ -122,8 +122,9 @@ Rules:
 - `AppTextField`: focus uses `primary`; error uses `error`; disabled uses state opacity tokens.
 - `AppCard`: tokenized surface/outline/radius/elevation; interactive states when pressable.
 - `AppTopBar`: safe-area aware, height `top inset + 64`, no bottom separator line.
-- `AppDialog`: tokenized scrim + card/buttons.
-- `AppSnackbar`: bottom safe-area placement, default auto-dismiss `3000ms`, tokenized style.
+- `AppDialog`: tokenized scrim + card/buttons, rendered as in-tree absolute overlay (not `Modal`).
+- `AppSnackbar`: bottom safe-area placement, default auto-dismiss `3000ms`, tokenized style, supports `tone` (`success`/`info`/`error`) and event-based replay via `eventId`.
+- Snackbar layering/timing invariant: opening dialogs/popups must not reset snackbar animation/timer; snackbar remains visually on top and undimmed.
 - `AppListRow`: min height `56`, semantic typography (`titleMedium`, `bodySmall`).
 
 ## Preferred Workflow For Changes
@@ -139,4 +140,3 @@ Rules:
 - Reuse `ScreenContainer` for new screen scaffolding.
 - Keep drawer interaction pattern consistent if adding destinations.
 - Preserve offline-first behavior unless requirements explicitly change.
-

@@ -8,3 +8,5 @@ jest.mock(
 );
 
 jest.mock('react-native-safe-area-context', () => mockSafeAreaContext);
+
+jest.mock('react-native-vector-icons/MaterialIcons', () => 'MaterialIcons');

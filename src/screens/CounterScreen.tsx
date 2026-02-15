@@ -14,7 +14,7 @@ import {
 import {AppButton} from '@/components/AppButton';
 import {AppCard} from '@/components/AppCard';
 import {AppDialog} from '@/components/AppDialog';
-import {AppSnackbar} from '@/components/AppSnackbar';
+import {AppSnackbar, type AppSnackbarTone} from '@/components/AppSnackbar';
 import {AppText} from '@/components/AppText';
 import {ScreenContainer} from '@/components/ScreenContainer';
 import {useTheme} from '@/design/theme/ThemeProvider';
@@ -30,6 +30,13 @@ import {
 
 const COUNTER_AMOUNT_ERROR_TEXT = 'Enter a non-negative whole number.';
 
+type SnackbarState = {
+  eventId: number;
+  message: string;
+  tone: AppSnackbarTone;
+  visible: boolean;
+};
+
 export function CounterScreen() {
   const {theme} = useTheme();
   const [startDate, setStartDate] = useState<Date>(() => startOfLocalDay(new Date()));
@@ -41,12 +48,20 @@ export function CounterScreen() {
     String(DEFAULT_DAILY_AMOUNT),
   );
   const [amountError, setAmountError] = useState<string | undefined>();
-  const [isSnackbarVisible, setSnackbarVisible] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbar, setSnackbar] = useState<SnackbarState>({
+    eventId: 0,
+    message: '',
+    tone: 'info',
+    visible: false,
+  });
 
-  const showSnackbar = (message: string) => {
-    setSnackbarMessage(message);
-    setSnackbarVisible(true);
+  const showSnackbar = (message: string, tone: AppSnackbarTone) => {
+    setSnackbar(previous => ({
+      eventId: previous.eventId + 1,
+      message,
+      tone,
+      visible: true,
+    }));
   };
 
   useEffect(() => {
@@ -87,10 +102,10 @@ export function CounterScreen() {
       .then(nextDate => {
         setStartDate(nextDate);
         setDraftStartDate(nextDate);
-        showSnackbar('Counter date reset to today');
+        showSnackbar('Counter date reset to today', 'success');
       })
       .catch(() => {
-        showSnackbar('Unable to reset counter date');
+        showSnackbar('Unable to reset counter date', 'error');
       });
   };
 
@@ -116,10 +131,10 @@ export function CounterScreen() {
         setStartDate(savedDate);
         setDraftStartDate(savedDate);
         setStartDatePickerVisible(false);
-        showSnackbar('Start date saved');
+        showSnackbar(`Start date saved: ${formatDateYmd(savedDate)}`, 'success');
       })
       .catch(() => {
-        showSnackbar('Unable to save start date');
+        showSnackbar('Unable to save start date', 'error');
       });
   };
 
@@ -133,10 +148,10 @@ export function CounterScreen() {
       .then(savedAmount => {
         setAmountInputValue(String(savedAmount));
         setAmountError(undefined);
-        showSnackbar('Counter amount saved');
+        showSnackbar(`Counter amount saved: ${savedAmount} ILS/day`, 'success');
       })
       .catch(() => {
-        showSnackbar('Unable to save counter amount');
+        showSnackbar('Unable to save counter amount', 'error');
       });
   };
 
@@ -232,9 +247,16 @@ export function CounterScreen() {
 
       <AppSnackbar
         actionLabel="Dismiss"
-        message={snackbarMessage}
-        onDismiss={() => setSnackbarVisible(false)}
-        visible={isSnackbarVisible}
+        eventId={snackbar.eventId}
+        message={snackbar.message}
+        onDismiss={() =>
+          setSnackbar(previous => ({
+            ...previous,
+            visible: false,
+          }))
+        }
+        tone={snackbar.tone}
+        visible={snackbar.visible}
       />
       <AppDialog
         cancelLabel="Cancel"

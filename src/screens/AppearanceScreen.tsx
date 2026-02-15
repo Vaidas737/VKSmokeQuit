@@ -1,9 +1,9 @@
-import {useMemo, useState} from 'react';
+import {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import {AppCard} from '@/components/AppCard';
 import {AppListRow} from '@/components/AppListRow';
-import {AppSnackbar} from '@/components/AppSnackbar';
+import {AppSnackbar, type AppSnackbarTone} from '@/components/AppSnackbar';
 import {AppText} from '@/components/AppText';
 import {ScreenContainer} from '@/components/ScreenContainer';
 import {useTheme} from '@/design/theme/ThemeProvider';
@@ -31,9 +31,28 @@ const THEME_OPTIONS: Array<{
   },
 ];
 
+type SnackbarState = {
+  eventId: number;
+  message: string;
+  tone: AppSnackbarTone;
+  visible: boolean;
+};
+
+const getThemeTitle = (mode: ThemeModePreference): string => {
+  const option = THEME_OPTIONS.find(themeOption => themeOption.mode === mode);
+
+  return option?.title ?? 'Theme';
+};
+
 export function AppearanceScreen() {
   const {resolvedMode, setThemeMode, theme, themeMode} = useTheme();
-  const [isSnackbarVisible, setSnackbarVisible] = useState(false);
+  const [snackbar, setSnackbar] = useState<SnackbarState>({
+    eventId: 0,
+    message: '',
+    tone: 'info',
+    visible: false,
+  });
+  const latestThemeChangeRequestIdRef = useRef(0);
 
   const resolvedModeLabel = useMemo(() => {
     if (resolvedMode === 'dark') {
@@ -43,12 +62,41 @@ export function AppearanceScreen() {
     return 'Light';
   }, [resolvedMode]);
 
+  const showSnackbar = (message: string, tone: AppSnackbarTone) => {
+    setSnackbar(previous => ({
+      eventId: previous.eventId + 1,
+      message,
+      tone,
+      visible: true,
+    }));
+  };
+
   const handleThemeChange = (mode: ThemeModePreference) => {
+    const modeTitle = getThemeTitle(mode);
+
+    if (mode === themeMode) {
+      showSnackbar(`${modeTitle} theme is already active`, 'info');
+      return;
+    }
+
+    latestThemeChangeRequestIdRef.current += 1;
+    const requestId = latestThemeChangeRequestIdRef.current;
+
     setThemeMode(mode)
       .then(() => {
-        setSnackbarVisible(true);
+        if (requestId !== latestThemeChangeRequestIdRef.current) {
+          return;
+        }
+
+        showSnackbar(`Theme changed to ${modeTitle}`, 'success');
       })
-      .catch(() => {});
+      .catch(() => {
+        if (requestId !== latestThemeChangeRequestIdRef.current) {
+          return;
+        }
+
+        showSnackbar('Unable to update theme preference', 'error');
+      });
   };
 
   return (
@@ -75,9 +123,16 @@ export function AppearanceScreen() {
 
       <AppSnackbar
         actionLabel="Dismiss"
-        message="Theme preference updated"
-        onDismiss={() => setSnackbarVisible(false)}
-        visible={isSnackbarVisible}
+        eventId={snackbar.eventId}
+        message={snackbar.message}
+        onDismiss={() =>
+          setSnackbar(previous => ({
+            ...previous,
+            visible: false,
+          }))
+        }
+        tone={snackbar.tone}
+        visible={snackbar.visible}
       />
     </ScreenContainer>
   );
