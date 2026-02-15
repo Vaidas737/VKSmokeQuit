@@ -311,4 +311,60 @@ describe('HomeScreen', () => {
       expect(queryByText(/You can withdraw only from past months/)).toBeNull();
     });
   });
+
+  it('shows and hides withdrawal history footer dim based on scroll position', async () => {
+    const now = new Date();
+    const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+    const history = Array.from({length: 14}, (_, index) => ({
+      amount: 10 + index,
+      createdAtIso: new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        Math.max(1, now.getDate() - index),
+      ).toISOString(),
+      id: `entry-${index}`,
+    }));
+
+    await AsyncStorage.multiSet([
+      [STORAGE_KEYS.counterStartDate, previousMonthStart.toISOString()],
+      [STORAGE_KEYS.counterDailyAmount, '10'],
+      [STORAGE_KEYS.counterWithdrawalHistory, JSON.stringify(history)],
+    ]);
+
+    const {getByTestId, queryByTestId} = renderHomeScreen();
+
+    await waitFor(() => {
+      expect(getByTestId('withdrawal-history-scroll')).toBeTruthy();
+    });
+
+    const historyScroll = getByTestId('withdrawal-history-scroll');
+    fireEvent(historyScroll, 'layout', {
+      nativeEvent: {
+        layout: {
+          height: 120,
+          width: 320,
+          x: 0,
+          y: 0,
+        },
+      },
+    });
+    fireEvent(historyScroll, 'contentSizeChange', 320, 400);
+
+    await waitFor(() => {
+      expect(queryByTestId('withdrawal-history-footer-dim')).toBeTruthy();
+    });
+
+    fireEvent.scroll(historyScroll, {
+      nativeEvent: {
+        contentOffset: {
+          x: 0,
+          y: 280,
+        },
+      },
+    });
+
+    await waitFor(() => {
+      expect(queryByTestId('withdrawal-history-footer-dim')).toBeNull();
+    });
+  });
 });

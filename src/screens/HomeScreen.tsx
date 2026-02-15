@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {
   AppState,
@@ -20,6 +20,7 @@ import {AppSnackbar, type AppSnackbarTone} from '@/components/AppSnackbar';
 import {AppText} from '@/components/AppText';
 import {ScreenContainer} from '@/components/ScreenContainer';
 import {useTheme} from '@/design/theme/ThemeProvider';
+import {withOpacity} from '@/design/theme';
 import {
   calculateMonthRemainingProgress,
   calculateWithdrawalBalances,
@@ -88,11 +89,17 @@ export function HomeScreen({isMenuVisible = false}: HomeScreenProps) {
   const [withdrawHistory, setWithdrawHistory] = useState<CounterWithdrawalEntry[]>([]);
   const [isWithdrawDialogVisible, setWithdrawDialogVisible] = useState(false);
   const [withdrawAmountInput, setWithdrawAmountInput] = useState('');
+  const [isHistoryFooterDimVisible, setHistoryFooterDimVisible] = useState(false);
   const [snackbar, setSnackbar] = useState<SnackbarState>({
     eventId: 0,
     message: '',
     tone: 'info',
     visible: false,
+  });
+  const withdrawalHistoryMetricsRef = useRef({
+    contentHeight: 0,
+    offsetY: 0,
+    viewportHeight: 0,
   });
 
   const showSnackbar = (message: string, tone: AppSnackbarTone) => {
@@ -214,84 +221,161 @@ export function HomeScreen({isMenuVisible = false}: HomeScreenProps) {
       });
   };
 
+  const updateHistoryFooterDimVisibility = useCallback(() => {
+    const {contentHeight, offsetY, viewportHeight} = withdrawalHistoryMetricsRef.current;
+    const scrollableRange = contentHeight - viewportHeight;
+    const canScrollDown = scrollableRange > 1 && offsetY < scrollableRange - 1;
+
+    setHistoryFooterDimVisible(previous => (
+      previous === canScrollDown ? previous : canScrollDown
+    ));
+  }, []);
+
+  const handleWithdrawalHistoryLayout = useCallback((height: number) => {
+    withdrawalHistoryMetricsRef.current.viewportHeight = height;
+    updateHistoryFooterDimVisibility();
+  }, [updateHistoryFooterDimVisibility]);
+
+  const handleWithdrawalHistoryContentSizeChange = useCallback((height: number) => {
+    withdrawalHistoryMetricsRef.current.contentHeight = height;
+    updateHistoryFooterDimVisibility();
+  }, [updateHistoryFooterDimVisibility]);
+
+  const handleWithdrawalHistoryScroll = useCallback((offsetY: number) => {
+    withdrawalHistoryMetricsRef.current.offsetY = offsetY;
+    updateHistoryFooterDimVisibility();
+  }, [updateHistoryFooterDimVisibility]);
+  const withdrawalHistoryFooterDimStops = useMemo(() => {
+    const stopCount = 16;
+    const peakOpacity = Math.min(
+      0.92,
+      theme.state.scrimOpacity +
+        theme.state.disabledContainerOpacity +
+        theme.state.focusOpacity,
+    );
+
+    return Array.from({length: stopCount}, (_, index) => {
+      const normalized = index / (stopCount - 1);
+      const opacity = normalized ** 1.15 * peakOpacity;
+
+      return withOpacity(theme.colors.surface, opacity);
+    });
+  }, [
+    theme.colors.surface,
+    theme.state.disabledContainerOpacity,
+    theme.state.focusOpacity,
+    theme.state.scrimOpacity,
+  ]);
+
   return (
     <ScreenContainer>
-      <ScrollView
-        contentContainerStyle={{
-          paddingBottom: theme.spacing[24],
-        }}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}>
-        <View style={[styles.content, {gap: theme.spacing[16]}]}>
-          <View style={styles.summary}>
-            <View style={styles.summaryRow}>
-              <Pressable
-                accessibilityLabel="Withdraw from total amount"
-                accessibilityRole="button"
-                accessibilityState={{disabled: !canOpenWithdrawDialog}}
-                disabled={!canOpenWithdrawDialog}
-                hitSlop={4}
-                onPress={openWithdrawDialog}
-                testID="home-total-amount-button"
-                style={({pressed}) => [
-                  styles.summaryValuePressable,
-                  pressed && canOpenWithdrawDialog ? styles.summaryValuePressablePressed : null,
-                ]}>
-                <AppText color="secondary" style={styles.summaryValue} variant="displaySmall">
-                  ₪{balances.adjustedOverall}
-                </AppText>
-              </Pressable>
-            </View>
-          </View>
-
-          <AppCard>
-            <AppText variant="titleLarge">
-              This Month: ₪{balances.generatedMonthly}
-            </AppText>
-            <AppText
-              color="onSurfaceVariant"
-              style={{marginTop: theme.spacing[8]}}
-              variant="bodySmall">
-              Month Remaining: {monthRemainingPercent}%
-            </AppText>
-            <AppProgressBar
-              accessibilityLabel="Month remaining progress"
-              pulseEnabled={isMonthRemainingPulseEnabled}
-              pulseIntervalMs={2200}
-              progress={monthRemaining.remainingRatio}
-              style={{marginTop: theme.spacing[8]}}
-            />
-            <AppText
-              color="onSurfaceVariant"
-              style={{marginTop: theme.spacing[8]}}
-              variant="bodySmall">
-              {monthRemaining.daysLeft} {daysLabel} left out of {monthRemaining.daysInMonth}
-            </AppText>
-          </AppCard>
-
-          <AppCard>
-            <AppText variant="titleMedium">Withdrawal History</AppText>
-            {withdrawHistory.length === 0 ? (
-              <AppText
-                color="onSurfaceVariant"
-                style={{marginTop: theme.spacing[8]}}
-                variant="bodyMedium">
-                No withdrawals yet.
+      <View
+        style={[
+          styles.content,
+          styles.mainContent,
+          {
+            gap: theme.spacing[16],
+            paddingBottom: theme.spacing[24],
+          },
+        ]}>
+        <View style={styles.summary}>
+          <View style={styles.summaryRow}>
+            <Pressable
+              accessibilityLabel="Withdraw from total amount"
+              accessibilityRole="button"
+              accessibilityState={{disabled: !canOpenWithdrawDialog}}
+              disabled={!canOpenWithdrawDialog}
+              hitSlop={4}
+              onPress={openWithdrawDialog}
+              testID="home-total-amount-button"
+              style={({pressed}) => [
+                styles.summaryValuePressable,
+                pressed && canOpenWithdrawDialog ? styles.summaryValuePressablePressed : null,
+              ]}>
+              <AppText color="secondary" style={styles.summaryValue} variant="displaySmall">
+                ₪{balances.adjustedOverall}
               </AppText>
-            ) : (
-              <View style={{marginTop: theme.spacing[8]}}>
-                {withdrawHistory.map(entry => (
+            </Pressable>
+          </View>
+        </View>
+
+        <AppCard>
+          <AppText variant="titleLarge">
+            This Month: ₪{balances.generatedMonthly}
+          </AppText>
+          <AppText
+            color="onSurfaceVariant"
+            style={{marginTop: theme.spacing[8]}}
+            variant="bodySmall">
+            Month Remaining: {monthRemainingPercent}%
+          </AppText>
+          <AppProgressBar
+            accessibilityLabel="Month remaining progress"
+            pulseEnabled={isMonthRemainingPulseEnabled}
+            pulseIntervalMs={2200}
+            progress={monthRemaining.remainingRatio}
+            style={{marginTop: theme.spacing[8]}}
+          />
+          <AppText
+            color="onSurfaceVariant"
+            style={{marginTop: theme.spacing[8]}}
+            variant="bodySmall">
+            {monthRemaining.daysLeft} {daysLabel} left out of {monthRemaining.daysInMonth}
+          </AppText>
+        </AppCard>
+
+        <AppCard style={styles.withdrawalHistoryCard}>
+          <AppText variant="titleMedium">Withdrawal History</AppText>
+          <View style={[styles.withdrawalHistoryBody, {marginTop: theme.spacing[8]}]}>
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              onContentSizeChange={(_, contentHeight) =>
+                handleWithdrawalHistoryContentSizeChange(contentHeight)
+              }
+              onLayout={event => handleWithdrawalHistoryLayout(event.nativeEvent.layout.height)}
+              onScroll={event =>
+                handleWithdrawalHistoryScroll(event.nativeEvent.contentOffset.y)
+              }
+              scrollEventThrottle={16}
+              showsVerticalScrollIndicator={withdrawHistory.length > 0}
+              style={styles.withdrawalHistoryScroll}
+              testID="withdrawal-history-scroll">
+              {withdrawHistory.length === 0 ? (
+                <AppText color="onSurfaceVariant" variant="bodyMedium">
+                  No withdrawals yet.
+                </AppText>
+              ) : (
+                withdrawHistory.map(entry => (
                   <AppListRow
                     key={entry.id}
                     subtitle={formatWithdrawalDate(entry.createdAtIso)}
                     title={`₪${entry.amount}`}
                   />
+                ))
+              )}
+            </ScrollView>
+            {isHistoryFooterDimVisible ? (
+              <View
+                pointerEvents="none"
+                style={[
+                  styles.withdrawalHistoryFooterDim,
+                  {
+                    height: theme.spacing[40],
+                  },
+                ]}
+                testID="withdrawal-history-footer-dim"
+              >
+                {withdrawalHistoryFooterDimStops.map((stopColor, index) => (
+                  <View
+                    key={`withdrawal-history-footer-dim-stop-${index}`}
+                    style={[styles.withdrawalHistoryFooterDimStop, {backgroundColor: stopColor}]}
+                  />
                 ))}
               </View>
-            )}
-          </AppCard>
-        </View>
-      </ScrollView>
+            ) : null}
+          </View>
+        </AppCard>
+      </View>
 
       <AppSnackbar
         actionLabel="Dismiss"
@@ -388,6 +472,9 @@ const styles = StyleSheet.create({
   content: {
     justifyContent: 'flex-start',
   },
+  mainContent: {
+    flex: 1,
+  },
   summary: {
     width: '100%',
   },
@@ -408,6 +495,26 @@ const styles = StyleSheet.create({
   },
   summaryValue: {
     textAlign: 'center',
+  },
+  withdrawalHistoryBody: {
+    flex: 1,
+    position: 'relative',
+  },
+  withdrawalHistoryCard: {
+    flex: 1,
+  },
+  withdrawalHistoryFooterDim: {
+    bottom: 0,
+    flexDirection: 'column',
+    left: 0,
+    position: 'absolute',
+    right: 0,
+  },
+  withdrawalHistoryFooterDimStop: {
+    flex: 1,
+  },
+  withdrawalHistoryScroll: {
+    flex: 1,
   },
   withdrawInput: {
     flex: 1,

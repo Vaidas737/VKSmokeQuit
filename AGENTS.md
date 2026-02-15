@@ -47,9 +47,12 @@ Maintain and extend the app with consistency and minimal risk. Prioritize produc
 ## Current UX Expectations
 
 - Home screen layout:
+  - Main screen content is static (no full-screen vertical scroll).
   - Top summary (outside cards): centered larger total value (no label), tappable to open the withdraw dialog.
   - First card: `This Month` and `Month Remaining` (percentage + progress bar + days left in month).
     - `Month Remaining` progress bar runs a smooth left-to-right gradient sweep while Home is focused and no popup/dialog is open (`pulseIntervalMs=2200`).
+  - Withdrawal History card is vertically scrollable inside the card.
+    - Show a bottom gradient dim overlay while more history items are available below; hide it at list end.
 - Counter values are based on persisted settings and local date/time.
 
 ## Theme and Persistence Rules
