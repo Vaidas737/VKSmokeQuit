@@ -45,12 +45,10 @@ Maintain and extend the app with consistency and minimal risk. Prioritize produc
 
 ## Current UX Expectations
 
-- Home screen shows one card with:
-  - `Overall Total`
-  - `This Month`
-  - `Month Remaining` (percentage + progress bar + days left in month)
-  - `Daily Rate`
-  - `Start Date`
+- Home screen layout:
+  - Top summary (outside cards): `Overall Total` label + larger total value.
+  - First card: `This Month` and `Month Remaining` (percentage + progress bar + days left in month).
+  - Second card: `Daily Rate` and `Start Date`.
 - Counter values are based on persisted settings and local date/time.
 
 ## Theme and Persistence Rules

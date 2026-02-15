@@ -81,9 +81,19 @@ export function HomeScreen() {
   return (
     <ScreenContainer>
       <View style={styles.content}>
+        <View style={{marginBottom: theme.spacing[24]}}>
+          <AppText color="onSurfaceVariant" variant="titleMedium">
+            Overall Total
+          </AppText>
+          <AppText
+            color="primary"
+            style={{marginTop: theme.spacing[8]}}
+            variant="displaySmall">
+            ₪{totals.overall}
+          </AppText>
+        </View>
         <AppCard>
-          <AppText variant="titleLarge">Overall Total: ₪{totals.overall}</AppText>
-          <AppText style={{marginTop: theme.spacing[12]}} variant="titleLarge">
+          <AppText variant="titleLarge">
             This Month: ₪{totals.monthly}
           </AppText>
           <AppText
@@ -103,7 +113,9 @@ export function HomeScreen() {
             variant="bodySmall">
             {monthRemaining.daysLeft} {daysLabel} left out of {monthRemaining.daysInMonth}
           </AppText>
-          <AppText color="onSurfaceVariant" style={{marginTop: theme.spacing[16]}}>
+        </AppCard>
+        <AppCard style={{marginTop: theme.spacing[16]}}>
+          <AppText color="onSurfaceVariant">
             Daily Rate: ₪{dailyAmount}/day
           </AppText>
           <AppText color="onSurfaceVariant" style={{marginTop: theme.spacing[8]}}>
@@ -118,6 +130,6 @@ export function HomeScreen() {
 const styles = StyleSheet.create({
   content: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
 });
