@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Project agent instructions for `/Users/vaidas/code/VKSmokeQuit`.
+Project agent instructions for `~/code/VKSmokeQuit`.
 
 ## Mission
 
