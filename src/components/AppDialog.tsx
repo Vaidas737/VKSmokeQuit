@@ -76,20 +76,14 @@ export function AppDialog({
 
   const dialogOpacity = animationProgress.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.92, 1],
+    outputRange: [0, 1],
   });
-  const dialogScaleX = animationProgress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.96, 1],
-  });
-  const dialogScaleY = animationProgress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.88, 1],
-  });
-  const dialogTranslateY = animationProgress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [theme.spacing[12], -theme.spacing[8]],
-  });
+  const dialogTranslateY = visible
+    ? animationProgress.interpolate({
+        inputRange: [0, 1],
+        outputRange: [theme.spacing[24], 0],
+      })
+    : 0;
 
   return (
     <View
@@ -109,11 +103,7 @@ export function AppDialog({
             styles.dialogCardContainer,
             {
               opacity: dialogOpacity,
-              transform: [
-                {translateY: dialogTranslateY},
-                {scaleX: dialogScaleX},
-                {scaleY: dialogScaleY},
-              ],
+              transform: [{translateY: dialogTranslateY}],
             },
           ]}>
           <AppCard style={styles.dialogCard}>
