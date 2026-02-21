@@ -56,8 +56,8 @@ Maintain and extend the app with consistency and minimal risk. Prioritize produc
   - Main screen content is static (no full-screen vertical scroll).
   - Top summary (outside cards): two larger totals in one row; left is tappable available withdrawal amount (matches Withdraw dialog `Maximum now`), right is unlabeled absolute total (includes withdrawals).
     - In the withdraw dialog, keyboard `Done` only dismisses the keyboard; only `Confirm` performs the withdrawal.
-  - First card: `This Month` and `Month Remaining` (percentage + progress bar + days left in month).
-    - `Month Remaining` progress bar runs a smooth left-to-right gradient sweep while Home is focused and no popup/dialog is open (`pulseIntervalMs=2200`).
+  - First card: `This Month` and `Month Completed` (percentage + progress bar + days left in month).
+    - `Month Completed` progress bar runs a smooth left-to-right gradient sweep while Home is focused and no popup/dialog is open (`pulseIntervalMs=2200`).
     - Show the current local date right-aligned below the progress bar.
   - Withdrawal History card is vertically scrollable inside the card.
     - Rows are tappable and use subtle press animation.

@@ -8,7 +8,11 @@ import {STORAGE_KEYS} from '@/constants/storage';
 import {AppProgressBar} from '@/components/AppProgressBar';
 import {ThemeProvider} from '@/design/theme/ThemeProvider';
 import {HomeScreen} from '@/screens/HomeScreen';
-import {calculateWithdrawalBalances, startOfLocalDay} from '@/utils/counterStorage';
+import {
+  calculateMonthRemainingProgress,
+  calculateWithdrawalBalances,
+  startOfLocalDay,
+} from '@/utils/counterStorage';
 
 type HomeScreenRenderProps = {
   isMenuVisible?: boolean;
@@ -140,6 +144,21 @@ describe('HomeScreen', () => {
     });
 
     expect(getByText('powered by willpower.')).toBeTruthy();
+  });
+
+  it('shows month completed value and progress in the this month card', async () => {
+    const {UNSAFE_getByType, getByText} = renderHomeScreen();
+
+    await waitFor(() => {
+      const remainingRatio = calculateMonthRemainingProgress(new Date()).remainingRatio;
+      const expectedCompletedPercent = Math.round((1 - remainingRatio) * 100);
+
+      expect(getByText(`Month Completed: ${expectedCompletedPercent}%`)).toBeTruthy();
+      expect(UNSAFE_getByType(AppProgressBar).props.progress).toBeCloseTo(
+        1 - remainingRatio,
+        1,
+      );
+    });
   });
 
   it('keeps total amount action disabled when only current month total exists', async () => {
@@ -486,7 +505,7 @@ describe('HomeScreen', () => {
     expect(updatedOverallAmount).toBe(initialOverallAmount + historyEntries[0].amount);
   });
 
-  it('pauses month remaining pulse while withdraw dialog is visible', async () => {
+  it('pauses month progress pulse while withdraw dialog is visible', async () => {
     const now = new Date();
     const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     await AsyncStorage.multiSet([
@@ -518,7 +537,7 @@ describe('HomeScreen', () => {
     });
   });
 
-  it('pauses month remaining pulse while withdrawal details dialog is visible', async () => {
+  it('pauses month progress pulse while withdrawal details dialog is visible', async () => {
     const now = new Date();
     const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 2, 1);
     const historyEntry = {

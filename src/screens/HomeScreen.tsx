@@ -268,9 +268,10 @@ export function HomeScreen({
       }).format(now),
     [now],
   );
-  const monthRemainingPercent = Math.round(monthRemaining.remainingRatio * 100);
+  const monthCompletedRatio = 1 - monthRemaining.remainingRatio;
+  const monthCompletedPercent = Math.round(monthCompletedRatio * 100);
   const daysLabel = monthRemaining.daysLeft === 1 ? 'day' : 'days';
-  const isMonthRemainingPulseEnabled =
+  const isMonthProgressPulseEnabled =
     isFocused && !isWithdrawDialogVisible && !isWithdrawalDetailsDialogVisible;
   const withdrawalError = useMemo(
     () =>
@@ -428,13 +429,13 @@ export function HomeScreen({
             color="onSurfaceVariant"
             style={{marginTop: theme.spacing[8]}}
             variant="bodySmall">
-            Month Remaining: {monthRemainingPercent}%
+            Month Completed: {monthCompletedPercent}%
           </AppText>
           <AppProgressBar
-            accessibilityLabel="Month remaining progress"
-            pulseEnabled={isMonthRemainingPulseEnabled}
+            accessibilityLabel="Month completed progress"
+            pulseEnabled={isMonthProgressPulseEnabled}
             pulseIntervalMs={2200}
-            progress={monthRemaining.remainingRatio}
+            progress={monthCompletedRatio}
             style={{marginTop: theme.spacing[8]}}
           />
           <View
